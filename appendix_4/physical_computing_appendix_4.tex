@@ -1,0 +1,57 @@
+\documentclass[../physical_computing.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Lab Exercise 3 - The Seven Segment Display}
+\label{sec:appendix_4}
+
+\section{Introducing the seven segment display}
+\label{sec:slow_clock}
+
+The seven segment display on the BASYS3 board is the first device we have encountered that is addressed serially. The display is connected to the FPGA by a total of 12 pins. There are four pins that control which segment of the display is currently being addressed, and the other eight pins control the seven bars of the digit and the decimal point. 
+
+We leave the names of all pins connected to the display as they were in the master constraint file. The four control pins are sometimes called anodes, because you can think of each of these four pins as connecting to the positive terminals of all 8 LEDs associated with a single digit. As defined in the constraint file, \texttt{an[0]} is associated with the rightmost digit, \texttt{an[1]} with the digit second from right, and so on. The signals on these pins are active low, which means that when they are set to $0$, that connects the LEDs of the corresponding digit to the other 8 pins on the FPGA which control what pattern of LEDs are lit up for that digit. 
+
+So, for example, if I write \texttt{"0000"} to the anode signals, this means that all four digits will display the same pattern of LEDs lit up as is represented by the signals on the other eight pins. In our first exercise with the LEDs, we will light up all four digits with the same patterns, set from eight of the switches on the board.
+
+The other eight pins from the display control what is actually visible from the segments of the digit and the decimal point. As for the anodes, all eight signals are active low, meaning that you have to set them to $0$ to light the corresponding segment. The names of the eight lines are \texttt{seg[0]} through \texttt{seg[6]} for the seven segments of the LED display, and \texttt{dp} for the decimal point. 
+
+\section{Exercise 1}
+\label{sec:lightson}
+
+ Create a project that permanently sets the anode signals to all zeros, so that all four digits are being addressed simultaneously all the time. Connect eight of the BASYS3 switches to the seven segments and the decimal point. Build the project and experiment with lighting up the bars in different combinations, determining which bars on the seven segment display connect to which elements of the \texttt{an[]} array.
+
+\section{Exercise 2}
+\label{sec:varydigit}
+
+Now modify the project so that four more of the switches on the BASYS3 control which of the digits are connected to the switches that were previously controlling all the digits at once.
+
+\section{Slow cycling}
+\label{sec:slowcycle}
+
+In last weeks lab we built a 32 bit counter that has a count rate, dictated by the external clock period, of one count every $\rm 10\,ns$. However, in order to use this display, we wish to count much more slowly, and furthermore to use those slow counts to determine which digit is being addressed, so that we can address them all in turn. At first, we want to switch between the digits so slowly that we can see that switching taking place. Therefore, use the formula worked out in class to work out which counter bit has a period of approximately one second. Say this bit is $n$. Then bits $n$ and $n+1$ form a two bit counter that counts from $0$ to $3$ and then resets and does it all again. You can then use a conditional assignment to associate the values of the binary counter with anode port patterns that select each digit in turn. For example, when the counter reads \texttt{"00"} that could translate to an anode bit pattern of \texttt{"1110"} to select the rightmost digit only.
+    
+\section{Exercise 3}
+\label{sec:slowcycle}
+
+Make a fast counter with 32 bits. Do not forget to uncomment the lines corresponding to the external clock in the constraint file, and to uncomment the numeric data type library at the top of your VHDL code. You will have to make a \texttt{std\_logic\_vector} signal having 32 bits to cast the clock into logic form. Create also a two bit wide signal that is wired to the bits of the clock corresponding to a least significant bit count rate of approximately one Hz. Use a conditional assignment to assign the anode pins to select a different clock digit, from right to left, as the counter increments. Now you should be able to use 8 switches to address each of the four digits of the display in turn, and at a one second switch rate between digits you should be able to see, manually, how the four digits are addressed sequentially.
+
+\section{Exercise 4}
+\label{sec:fastcycle}
+
+You should now calculate which bits of the counter will cause the digit scan rate to be about a quarter of a millisecond per digit. Change the two bits used to assign the anode pin values to the two bits that have this switch rate. When you re-build the code, all four digits should again appear lit, but this time you know that the four digits are being addressed sequentially, rather than all at the same time.
+
+\section{Exercise 5}
+\label{sec:food}
+
+Next by working out the specific LED bar patterns associated with these letters, and using a conditional assignment to set the bar patterns on 
+the display dependent on which digit is currently being addressed, write
+the word $F00d$ in the display.
+
+\section{Exercise 6}
+\label{sec:switchdisplay}
+
+Work out the bit patterns in the anode bars to display the sixteen hexadecimal digits, \texttt{0-9} and \texttt{a-f}. 
+Your BASYS3 board has four 7 segment displays on it, each of which can display any of these sixteen digits. It also has 16 switches, which you can think of as 4 groups of 4. Each group of 4 switches has 16 different possible configurations, 0000 through 1111. Write a VHDL program that allows you to display any combination of four hexadecimal digits by setting the switches accordingly. For example, to display the word \texttt{F00d}, your switch configuration would be \texttt{1111000000001101}. 
+
+\end{document}
