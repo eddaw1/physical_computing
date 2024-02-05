@@ -3,7 +3,7 @@
 \begin{document}
 
 \chapter{Logic and Integers}
-\label{sec:chapter1_logic_integers}
+\label{ch:arithmetic}
 
 \section{Logic Gates}
 \label{sec:logicgates}
@@ -325,7 +325,7 @@ so that the LSB represents $2^{-4}=0.0625$, which is 1/16.
 The digits other two non-zero digits are 2 and 16, so the 
 answer is $-4.25^2=16+2+0.0625=+18.0625$, which is correct.
 
-\section{Summary of Chapter 1}
+\section{Summary of Chapter \ref{ch:arithmetic}}
 \label{sec:ch1summary}
 
 In this chapter we have learned about the core logical operations
@@ -342,5 +342,322 @@ bits. You can now begin to appreciate what is inside a computer.
 However, there are important fundamental elements still to introduce.
 Fortunately, there are not that many more - in fact, we will meet
 them both in Chapter \ref{sec:registers}.
+
+\section{Lab Exercise 2 - Logic in VHDL}
+\label{sec:appendix_2}
+
+\subsection{Creating a new Vivado project}
+\label{sec:create_new_vivado_project}
+
+VHDL is a hardware description language for expressing the abstract functionality of digital circuits. VHDL can be compiled into an actual wiring diagram for a specific hardware device, which in this course will be a field programmable gate array, or FPGA. The FPGA we will be using in this course is from the Artix7 series made by Xilinx. Specifically the part number of the Artix7 FPGA on your BASYS3 boards is \texttt{\bf xc7a35tcpg236-1}. This is a part number that you will need every week in the lab. 
+
+The compiler that tries to turn your VHDL code into a hardware specification is actually a command line tool, but like many such tools it is usually used by way of a graphical user interface, sometimes called a software development kit (SDK). SDKs are all over the engineering world. In this course we will be using two SDKs, Vivado and Vitis. Vivado is the SDK for building the hardware, and when the hardware incorporates a microprocessor, Vitis is the SDK that we will use to program that microprocessor in the C language.
+
+A few practical details. You may have noticed that the chapters of the book correspond to the material taught in lectures, and the appendices correspond to the labs. This is deliberate. The lecture material I consider to be implementation independent; it would be the same if we were using a different HDL made by a different company for different chips, or a different SDK. The appendices are specific to our hardware. The idea is that I may have to re-write the appendices many times, but I am hoping not to have to do too much rewriting of the chapter materials.
+
+So, let's get started. For our first project we will build hardware that allows us to check that all the switches and LEDs on the BASYS3 board are working. There are two reasons for doing this. First, they might not be. The components of the BASYS3 are fairly cheap and it is not uncommon for the switches in particular to wear out and stop working. The second reason is that this is one of the simplest projects we can do, so it is a good one to start with.
+
+You will need to have read Appendix \ref{sec:our_hardware} before starting these instructions. Start up Vivado using the left hand tool shortcut. After some delay the window shown in Figure \ref{fig:vivado_startup} will appear. Note that some people become impatient and click the icon twice in which case two copies of Vivado will open. Just close one of them if this happens and use the other one.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/vivado_startup.png}
+    \caption{Startup screen for the Vivado software development kit}
+    \label{fig:vivado_startup}
+\end{figure}
+
+You'll want to create a project, so left-click (henceforth whenever I ask you to click without specifying which button, I mean left-click) on `Create Project'. This brings up a subwindow that says `Create a New Vivado Project'. On the first page you are asked to give the project a name, and to specify its location. Let's call the project \texttt{check\_leds\_and\_switches}. It is an old habit of mine to use underscores instead of spaces in file and directory names. I recommend that you pick up this habit. Unix-like computers tend to place special meaning on whitespace characters like space, tab, etc and things can unexpectedly fail to work if you have files and folders that have spaces in their names. Change the project name by clicking in the box and typing the new name. For the project location, the default is your home directory but we don't want this directory to become too cluttered, so let us make a new place to keep our Vivado projects. Click on the small rectangle to the right of the Project location box, with three dots in it. This brings up a 'Choose project location' window, shown in Figure \ref{fig:choose_project_location}. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/choose_project_location.png}
+    \caption{Window to choose project location. The 'create folder' icon is the third from the right of the small icons in the top right hand corner of the window.}
+    \label{fig:choose_project_location}
+\end{figure}
+
+The default location is your home directory. In this window, we can create a sub-directory of the currently selected directory (you'll see that physics, your home directory, is highlighted), by clicking the third icon from the right in the row of small icons in the top right hand corner of this window. Type \texttt{vivado\_projects} in this window and you will see a new folder with this name appears and becomes highlighted. Click Select. This returns you to the 'New Project' window, and you will see that the project location is now \path{/home/physics/vivado_projects}. Because you have the box checked that says `Create project sub-directory', Vivado will create a further sub-directory called \texttt{check\_leds\_and\_switches} within the Vivado projects directory. By using a new directory for every Vivado project we create, we can keep ourselves organised as we do more work. You are now done picking a project name and directory, so you can click the blue Next button ato the bottom, or use the shortcut alt-n. As an aside, in Vivado and many other software packages having graphical-user-interfaces (GUIs) every button that has a label with the first capital letter underlined has a keyboard shortcut of alt-(that key). No need to use shift because alt-n is the same as alt-N by convention. 
+
+On the second page displaying in this window you keep the default which is 'RTL Project'.
+
+On the third page you are asked to add sources. The sources are VHDL source files, and we are going to build ours from scratch, so you don't need to add any at this stage. So, Next (or alt-n) again. 
+
+This brings you to the fourth page, where you are asked to add constraints. A constraint is a file that we will discuss further. It's basic functionality is to associate pins on the FPGA chip with ports, which are wires into and out of the circuit you are going to define in your VHDL code. We will always start with a standard constraint file that is supplied by Digilent, the makers of the BASYS3 board that we have lent you. You will find this file in your home directory, and it is called \texttt{Basys-3-Master.xdc}. You can add this constraint file now, or later on once the project is open. Let's add it now. Click on the '+' icon close to the top left of the window you are in, and select `Add Files...'. This will bring up a browser window, which is shown in Figure \ref{fig:add_constraint_file}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/add_constraint_file.png}
+    \caption{The browser window for selecting a constraint file.}
+    \label{fig:add_constraint_file}
+\end{figure}
+
+The browser starts in your home directory by default, which is the location of the constraint file. Click on it, and the contents at the head of the file should appear in the `File Preview' pane to the right, and the file name should also appear in the box second from bottom of the window. Click OK, or just hit the Return key, and this should close the browser window. Finally, be sure to check the box in the bottom left hand corner that says `Copy constraints files into project'. This causes Vivado to duplicate the constraints file into a subdirectory of your project folder, so that you can re-use the generic one in your home directory for future projects. You don't have any more constraint files to add, so hit Next (or alt-n).
+
+The next part of project specification is to select the Default Part, or sometimes you will instead want to select the Default Board. For today, we're just going to select the part. You'll see a long list of parts appear in a table in the lower part of this window. The list is so long that scrolling up and down it is a chore. The parts on this list are FPGA devices that is supported under your Vivado software license. One of these devices is the FPGA on the BASYS3 board, and as already mentioned the part number is \texttt{\bf xc7a35tcpg236-1}. Click in the Search window, (or alt-S) and type in the part number, and the list of parts in the table will narrow to just 1. Then, click on the one remaining row, and this part should be highlighted in blue. Note that in this table various statistics about the chip are given. It has 236 pins for input/output, 106 IOBs (input output buffers), 20800 LUT (look-up table) elements, 41600 FlipFlops, 50 block RAMs, 90 DSPs (digital signal processors), and you can use the horizontal scroll bar at the bottom to move across the table to see that it has 2 Gigabit transceivers and 2 GTPE2 transceivers, one PCIe (pci express module), 5 MMCM (multi-mode clock module), a minimum operating voltage of 0.95V, and a maximum operating voltage of 1.05V. Click next (or alt-n). This completes the specification of the project. Check that a new RTL project with the correct name of \path{check_leds_and_switches} will be created. Check that the default part is the one in bold above, of the Artix-7 family, package cpg236, and speed grade -1. Then, alt-f or click Finish. A small window indicating that some work is being done will appear and after that the Vivado window will change to the top window of the project. It might be best to use the 'square' icon in the top right of the window to maximise it to full screen. The window should appear as shown in Figure \ref{fig:vivado_project}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/create_new_vivado_project.png}
+    \caption{A new Vivado project window on start-up.}
+    \label{fig:vivado_project}
+\end{figure}
+
+\subsection{Organisation of the Vivado project window}
+\label{sec:vivado_project_window}
+
+The general layout is that there is a left hand `Flow Navigator' toolbar. This bar contains commmands, or directories (with a `$>$' on the left) containing more commands. At the top of this `Flow Navigator` on the right there is an underscore, which when you click on it causes the flow navigator to disappear. If this happens, you can make it reappear by clicking on the tall slim rectangle all the way on the left with `FLOW NAVIGATOR' written in it sideways. This should bring it back. The other three icons expand and collapse the contents of the `Flow Navigator', and give you some text help on what this navigator is for. 
+
+The rest of the window consists of a set of panes, each of which have tabs in them. The biggest pane currently just has a `Project Summary' in it, which we will come to in a minute. To its left there are two smaller panes stacked vertically on top of each other. The top one says `Sources' and the bottom one says `Properties'. Each of these three panes has a cross in the top right hand corner. If you click on this, the pane disappears. If this happens, you can make it reappear by clicking on 'Window' in the top left of the Vivado project window and selecting the name of the pane. Try it with one of them.
+
+At the bottom of the window is a long but squat pane with five tabs in it labelled 'Tcl Console', 'Messages', 'Log', 'Reports' and 'Design Runs'. Explore by clicking on them one-by-one. 
+
+`Tcl Console' contains an enticing window with the words `Type a Tcl command here'. This is what is visible of the command line program underlying the graphical user interface (GUI). If you were an expert, you could run the entire SDK without ever using a mouse from this window. Indeed, many professional engineers probably do exactly that. As a point of interest, Tcl was a scripting language that was very popular in the 1990s and early 2000s, then fell out of favour, but not before the entire engineering community had bought heavily into it, rather in the same way that astronomers have gone a bundle for PYTHON. The Tcl language came with some rather nice GUI widgets so the package was called Tkl/Tk, and many GUIs, including earlier versions of Vivado, were built out of Tk widgets. So, that's why it's called a Tcl command. You'll never need it but it is nice to understand why things are the way they are. If you are curious, when we get to actually running commands, you can open up this Tcl Console window and view the actual command line tools that you have invoked by clicking on the symbols. This is why I know that you could run the whole program from the command line - all the GUI does is generate Tcl commands corresponding to the mouse clicks it detects, and then displays the results in a graphical format. It is literally a graphical interface to a command line, or shell, based tool.
+
+The `Messages' tab is where you go to look for errors, warnings and information that are fed back to you after you run a command. You'll see that there are currently three messages of class info - if you uncheck the box they disappear, and if you recheck the box they come back. This is useful because if you run something and it goes wrong there may be 107 warnings of no interest and a single error that needs rectifying. By unchecking the `warnings' and `info' boxes you can view the error and do something about it.
+
+`Log' shows all the text returned by all the commands you run in a single window. It is probably not a very efficient way of getting this information - you are better off with the `Messages' tab.
+
+`Reports' is where you can view technical data about the products resulting from your design. Things like what fraction of the hardware resources on the chip are being used appear here.
+
+`Design Runs' is where you can view progress when you launch a command that takes a few minutes to complete. One of the reasons that I lend out these laptops rather than having students install the software on their own machines is that Vivado and its underlying tools are actually very compute-intensive. These laptops were the best hard disk / processor / core combination I could find for the money. They are quite fast machines, but you'll still find yourself waiting for things, especially when the projects get more elaborate later in the course. You're probably best off leaving the 'Design Runs' tab open for now.
+
+Each of the panes has a small icon in the top right hand corner to the left of the cross icon that hides the pane, which looks like a rectangle with an arrow in it. If you click this, it pulls the pane out into a separate window that you can make very large. Try this with one of them. If you want this window to go back into the Vivado project window, then next to the `X', the icon in this window now looks like a right angle with an arrow pointing southwest away from it. Click this and the window turns back into a pane. The next icon along in each pane is an empty rectangle. If you click this, that pane expands to fill a much bigger space, obscuring the other panes, but not the Flow Navigator. This is another way to concentrate on what is in one of the panes at the expense of the others. To reverse this action, click on the 'double square' icon that appears in the same place as the single square when you maximise the pane in this way. This will restore the pane you maximised to its previous size. There is also an `\_` icon which turns any pane into a tall thin rectangle at the edge, which you can retrieve by clicking on that rectangle. Try that too. Finally, each pane contains a '?' icon, which expands to some help on what that pane is for. In previous versions of the software this wasn't actually any use at all. However, it has improved, so do have a read of some of this help text.
+
+All in all, I recommend that you spend some time exploring this SDK and how it is organised. Because you are all working remotely, if something wierd happens in the GUI, it will be far, far easier if you can make things right for yourself and not have to ask us to do it for you.
+
+\subsection{Which hardware description language ?}
+\label{sec:which_hdl}
+
+There are two hardware description languages supported in Vivado - VHDL and Verilog. Verilog is probably used more extensively in professional engineering, but I think VHDL is a better language for first time hardware developers, because it makes very explicit certain concepts that are fundamental to the architecture of computers, particularly registers, which we will discuss next week. \texttt{Verilog} tries to look more like an ordinary high-level programming language like C, but I think that for a student this is actually counter-productive. So, we will use VHDL. If you look in your Project Summary window, however, you'll see that it says, on the left, amongst many other things, that the `Target language' is Verilog. This strange choice of words means - `I am expecting you to code in Verilog here'. We need to fix this or there's going to be trouble. So, click on the blue 'Edit' in this pane, click on the arrow next to Verilog in the window that appears, and select VHDL instead, followed by OK. Now you are set up to compile VHDL code in Vivado.
+
+As an aside, after I started learning about VHDL for myself about a decade ago, I realised that it reminded me of a work experience placement I had when I was at school, at a company called Lucas Aerospace. The engineers there sent me off to write code for a PAL, which stands for programmable array of logic, in a language called ABEL. I ended up concluding that the PAL the engineer had selected didn't have enough gates on it to implement the functionality that the engineer wanted, so it wasn't a roaring success. Well, it turns out that a few years later Xilinx bought ABEL, and used it as the precursor to developing VHDL. So, without realising it, I have been programming in hardware description languages since I was fifteen! And, it turns out that ABEL is still in use, in some quarters, 35 years later. All that happened is the devices got bigger - PALS became CPLDs (complex programmable logic devices) which then got even larger and became FPGAs, and now we have SoCs, which are systems-on-a-chip. What's next? Maybe UoS, which instead of University of Sheffield could be Universe-on-Silicon ?
+
+\subsection{A first look at the constraint file}
+\label{sec:constraint_file}
+
+In the `Sources' pane, there is a folder icon with Constraints (1) written next to it. Click on the `$>$' next to that folder. The folder hierachy should expand and the file Basys-3-Master.xdc that you incorporated as a constraint file should appear. Double click on this file. It opens in the largest pane (which I'll just call the main pane from now on) as a new tab. There should now be two tabs in the main Pane, the constraint file and the `Project Summary' tab that was there before. Use the mouse to toggle between views of the two tabs. Go back to the constraints tab. Scroll up and down inside the file and take a look at its contents.
+
+First, note that every single entry in this file, with the exception of a couple at the end, starts with the `\#' character. This is the comment character in constraint files, so before we start doing things every line in this file is commented out. However, if you look down this file whilst also looking at the board you'll begin to notice a correspondence between the constraint file entries and the hardware. Here are some observations I would make.
+
+\begin{itemize}
+    \item The file entries are divided into blocks with space lines between the blocks.
+    \item The first block below the four comment lines at the top is to do with a Clock signal. We won't worry about clocks this lab.
+    \item After this there is a block entitled Switches. The lines in this block are in pairs. The first line of each pair contains a letter-number combination. In the first pair it is V17, in the second it is V16, etc.
+    \item There are 16 of these pairs in the switches block.
+    \item There are 16 switches on the board. If you look at the board, can you find the letters V17, V16, and the other similar pairs printed on the board in the vicinity of the switches?
+    \item Moving past the switches block, the next block says LEDs. This block too has pairs of lines, and there are 16 pairs in all.
+    \item Like the switches, the LED lines are associated with alphanumeric codes, like U16 and E19. Look at the board and locate the LEDs, close to the switches, that have these alphanumeric codes next to them.
+\end{itemize}
+
+We're actually only going to use the LEDs and switches today, so you don't need to worry about the remainder of the constraint file. However, if you want to take a quick look, the remaining blocks also correspond to physical devices connected to the FPGA. For example, the 3 blocks below the title 7 segment display, with 7 pairs of lines then a space then a pair of lines on its own, then four more pairs of lines, are all related to the four digit alphanumeric LED display on the board. The five pairs labelled Buttons correspond to the cluster of five pushbuttons - notice the names of the ports are btnC (central), btnU (up), btnL (left) ...etc, corresponding to the physical arrangement of the buttons on the board. The four groups labelled Pmod Header JA, JB, JC, and JXADC have to do with the four 12-pin expansion connectors, or PMOD connectors, on the two short sides of the board. The section labelled VGA Connector corresponds to the pins of the micro-D connector on the back side, which is designed to control an analog RGB monitor. The remaining blocks are associated with an RS232 serial interface that can be connected to the micro-USB connector next to the on switch, the full sized USB port in the top right corner, and some SPI flash memory connected to the FPGA.
+
+\subsection{Modifying the constraint file}
+\label{sec:constraints}
+
+Remember from the first lecture (see Chapter \ref{sec:chapter1_logic_integers}) when I discussed buses? In this constraint file, the LEDs and switches are each configured as 16 bit wide buses. You have a bank of 16 switches and a bank of 16 LEDs. Each LED and each switch is wired to a different physical pin on the FPGA hardware. The FPGAs have a grid of pins that cover the whole back side of the chip, except for a square in the centre that for this chip has no pins. The pins are arranged in a square grid. These alphanumeric codes are literally the grid references of the pins that are connected to the devices in question. After these alphanumeric codes are square brackets containing syntax like `get ports \{sw[0]\}'. A port is VHDL syntax for the name of an input and output in the hardware description language. Where an input or an output is part of a bus, the square brackets specify which bit this port is. So, in the case of this port, it's the least significant bit, bit 0, of the 16 bit bus connected to the switches. Looking down the rest of the switches, you can see that each pair of lines refers to a different bit in the bus, from the LSB at the top to the MSB at the bottom. The second line in each pair specifies what type of voltage standard the hardware is - in this case LVCMOS33 means low voltage CMOS 3.3V. These lines are used when Vivado is doing timing simulations on the signals propagating across the FPGA. 
+
+You are going to need to uncomment all the lines in the switch and LED blocks. To do this, use the left mouse button to highlight the entire block, or as much of it as you can at once. The lines you highlight will turn blue. At the top of the Basys-3-Master.xdc tab, there are 11 small icons. The third from the right is `//'. If you click on this it will uncomment the highlighted lines. They should change from grey to black and blue, and the comment characters at the beginning of the lines should disappear. Carry on with this until you have uncommented all the lines in the switch and LED blocks, except the first line in each block, where the double comment character is a way of telling you that this is just a title.
+
+After uncommenting all the switch and LED blocks, you'll need to save changes. Notice that after you started altering the constraint file, an asterisk (star) appeared next to the file name at the top of the tab. This means the file has unsaved changes. To save these changes, hold down the Ctrl key and press s (ctrl-s). The asterisk should disappear when your changes are saved. Your constraint file is now ready to use.
+
+\subsection{Creating a source file}
+\label{sec:sourcefile}
+
+Our next job is to create our VHDL source file. To do this look in the `Flow Navigator' sidebar and click `Add Sources'. A window appears, with three options, the middle of which is 'Add or create design sources'. Click the button next to this option to select and then click Next. The ensuing window looks a lot like the one where you added the constraint file earlier. In fact, it's the same window, only this time, we don't want to add an existing file, we want to create one from scratch. To do this, click the plus sign towards the top left corner and select `Create File'. A sub-window appears. The file type should be VHDL, but you need to give the file a name. Click in the box next to File name. It can be anything you want as long as it ends in .vhd, only don't include any spaces in the name. How about `switch\_to\_led.vhd'. That is what I called mine, anyway. Hit OK. This should return you to the `Add Sources' window, and your file should be visible as shown in Figure \ref{fig:add_sources}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/add_sources.png}
+    \caption{The `Add Sources' window after you have named your source file.}
+    \label{fig:add_sources}
+\end{figure}
+
+You can now click Finish, only it's not over yet. A new window appears called 'Define Module'. You don't actually have to use this, but it is quite useful to do so as it gets your source code off to a good start. In this window there is a table called I/O Port definitions. In our module, there will be an input port bus for the signals from the 16 switches and an output port bus for the signals going to the 16 LEDs. So, in the top left cell just under port name, click in the box and write sw, which if you recall was the name of the 16 ports for the switches in the constraint file. Check the box to confirm that this input is a Bus. Next click on the zero in the MSB column. The zero is now blue and you can just enter 15, or click the up arrow until the zero increments to 15. As long as it ends up as 15, that's OK. 
+
+Next click in the next row down directly below where you wrote sw. The row fills with entries. Click again and then you can enter led as the port name. Change the `in' to `out' on this row as the switches are outputs, check the Bus box again, and change the MSB to 15. Click OK to finish. In the Sources pane, you should now be able to see your file under `Design Sources' with whatever filename you gave it. Double click on the file name and your file will open up in the main pane. Now you have three tabs in the main pane - Project Summary, Basys-3-Master.xdc, and your VHDL source file.
+
+\subsection{Modifying the source file}
+\label{sec:source_file_mods}
+
+The first thing you'll notice about the source file when you open it is that most of the lines begin with two dashes in a row. This is the comment character in VHDL. It is a bit annoying that the VHDL comment character is different from that in the constraint file. It's because the constraint file syntax is actually Tcl syntax, and I believe the double dash comment character originates in the ABEL language I used when I was 15! The file lines are numbered, and everything up to and including line 21 is basically superfluous. I suggest that you delete these lines. Line 22 is the first important one, where it says `library IEEE;'. You can also remove the remaining comments after `use IEEE.STD\_STD\_LOGIC\_1164.ALL' and 'entity switch\_to\_led is'. The code should now look like this.
+
+\newpage
+
+\begin{minted}{vhdl}
+----------------------------------------------------
+--- WARNING - THIS CODE WILL NOT BUILD UNTIL -------
+--- YOU MAKE THE ADDITION GIVEN ON THE NEXT PAGE ---
+----------------------------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity switch_to_led is
+    Port ( sw : in STD_LOGIC_VECTOR (15 downto 0);
+           led : out STD_LOGIC_VECTOR (15 downto 0));
+end switch_to_led;
+
+architecture Behavioral of switch_to_led is
+
+begin
+
+
+end Behavioral;
+\end{minted}
+
+Here is an explanation of the code. The first couple of lines declare that you will be using logical data types. The four lines starting with entity switch\_to\_led is and ending with end switch\_to\_led describe the input and output ports to your logic circuit. In this case, we have a 16 element input bus whose port name is sw, and a 16 element output bus whose port name is led. Notice that sw and led match the port names in the constraint file. It is very important that this is so, otherwise the code will not compile correctly. Notice that the ports are defined between a pair of round brackets, and the two port declarations are separated by a semicolon. Notice also that the last port declaration has a semicolon OUTSIDE the round bracket that encloses the ports, but no semicolon inside this bracket. All this syntax is correct, and the ports are already correctly defined because we used the GUI window during the create source sequence to specify our ports ahead of time.
+
+VHDL differs from python in that it does not use whitespace characters like spaces, tabs or newlines to convey information. A command is terminated by a semicolon. You can have as much whitespace as you like in a single statement, so long as use a semicolon to tell the compiler when that statement is finished. Personally I think this is profoundly sensible. But, it does mean you have to be careful to remember the semicolons.
+
+What is still missing is what connects the input ports to the output ports. All we want to do to start with is connect each of the 16 switches to the corresponding LED. To do that we add one line as follows:
+
+\newpage
+
+\begin{minted}{vhdl}
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity switch_to_led is
+    Port ( sw : in STD_LOGIC_VECTOR (15 downto 0);
+           led : out STD_LOGIC_VECTOR (15 downto 0));
+end switch_to_led;
+
+architecture Behavioral of switch_to_led is
+
+begin
+    led <= sw;
+end Behavioral;
+\end{minted}
+
+The architecture part of the code is where you define how your circuit is connected together between the ports. In this case, it is very simple. We just connect the 16 bit input bus from the switches to the 16 bit output bus going to the LEDs. The $<=$ operator is the 'assignment' operator that makes the connection. It is formed from a less than sign followed by an equals sign. Do not get confused and write just $=$ in this context. That means something else in VHDL. Think of $<=$ as wires connecting two objects. Use ctrl-s to save your file.
+
+Vivado has an automatic syntax checker. If you have made the file correctly, the file name should remain in bold in the Design Sources window. If however you have made a syntax mistake, this will be indicated in your `Sources' pane as shown in Figure \ref{fig:syntaxerror}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/syntax_error.png}
+    \caption{Appearance of the `Sources' pane when Vivado has found a syntax error in a VHDL source file.}
+    \label{fig:syntaxerror}
+\end{figure}
+
+Even if you didn't make any errors, try inserting a rogue character in your VHDL file, then using ctrl-s to save, so that you trigger the error checker. If you click on the `$>$' next to Syntax Error Files, your file is there, and it is not highlighted. Now fix the error and ctrl-s again, and your file is restored to Design Sources and is listed in boldface. Vivado's editor also spots syntax errors in-line by underlining them in red. If you see this kind of red underlining in your file, it probably means you should look for a mistake.
+
+\subsection{Synthesising your design}
+\label{sec:synthesis}
+
+You are now ready to run synthesis on your design. In this step, Vivado and its underlying compiler determine the optimal set of logical entities available on the chip to implement your circuit. Of course, this design will use very few resources, but it's our first one, so no surprises there. Click `Run Synthesis' in the `Flow Navigator' bar on the left. When you do this, a small 'Launch Runs' window appears. This is shown in Figure \ref{fig:launch_runs}. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figures/launch_runs.png}
+    \caption{The `Launch Runs' window}
+    \label{fig:launch_runs}
+\end{figure}
+
+This window isn't so important for this simple job, but for larger jobs you can save significant time here. Vivado is capable of operating multiple CPU cores at once. In this window you can select a number of jobs up to 4. This means that you can use up to the 4 cores that your laptops i7 pentium processor has. Where you are building multiple modules at once, this will literally divide your build time by four. So, it's well worth being aware of this functionality. In this case just hit OK.
+
+If all goes well, you will see a small `Synthesis Completed' window like the one in Figure \ref{fig:synthesis_completed}. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figures/synthesis_completed.png}
+    \caption{The `Synthesis Completed' window}
+    \label{fig:synthesis_completed}
+\end{figure}
+
+You next want to launch the `Run Implementation' step. This step figures out how to route the wires between the input and output pins on the chip and the required logical elements. Just select OK to start this process. Again, the default of 2 parallel jobs is OK for this build. You'll have to wait a short while for this to complete. If everything goes well, you should see another similar window, 'Implementation Completed'. This time you want to skip opening the implemented design, so just select 'Generate Bitstream', and then click OK (or hit return). Once the bitstream has built, a 'Bitsream Generation Completed' window appears. In this window, you just hit cancel, because we need to get the board hooked up before we launch on the hardware.
+
+\subsection{Launching on hardware}
+\label{sec:launchingonhardware}
+
+We are now ready to launch on the hardware. The first step is to connect the BASYS3 board to the computer. Before we do this, however, there are a few checks. On this board, in the top left and top right corners there are some blue 'jumpers' connected across pairs of pins. The jumper in the top left (with the switches at the bottom) should be connected between the middle of the three pins and the one towards the inside of the board, with the letters `USB' written on the board next to it. This jumper sets the board to be powered from your laptop through the USB cable. The other jumper position instead draws the board power from the two pins below the power switch labelled EXT and GND. The power switch itself should be in the `OFF' position, with the switch slid towards the inside of the board. 
+
+The other jumper next to the big USB port should be set in the middle position it can occupy, connecting the middle two of the four pins. The board can be programmed in three ways, and the way we will be using today is to program the board directly from an external device by way of a so-called JTAG chain. A JTAG chain is a standard protocol for programming multiple chips through a serial interface. The other two programming methods are to program the board from an on-board flash memory chip (QSPI) and from a USB stick plugged in to the large USB port (USB). 
+
+The computer connects to the board using the usb to microusb cable that I supplied you with. Ensure the board is not on a metallic surface that could short out the pins. Note that the micro USB plug connects to the BASYS3 with the flat and larger side of the D connector UPWARDS. Do not force it in because these connectors are not all that robust! It should go in quite easily. Connect the board up to any USB port on the laptop and turn it on at the switch. A red light in the top left hand corner of the board should light up, and an orange light next to the large USB port should come on for a second or so, and then go out.
+
+Back in Vivado, at the very bottom of the `Flow Navigator', click on the arrow next to `Open Hardware Manager'. Click on `Open Target', and select `Open New Target...'. A window will appear called `Open New Hardware Target'. Click next. On the next screen, you want to accept the default that your target is connected to your local machine, so click next again. The window should now show your Digilent device as a hardware target. This is shown in Figure \ref{fig:hardware_target}. Click Next and then Finish.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/hardware_target.png}
+    \caption{The hardware window with the digilent board and device visible.}
+    \label{fig:hardware_target}
+\end{figure}
+
+\subsection{Programming the device}
+\label{sec:programming}
+
+You should now be able to program the board. At the bottom of the `Flow Navigator' sidebar, click on `Program Device' and select the xc7a35. In the window that appears, you can see the bitstream file, switch\_to\_led.bit, which is used to program the chip. Click program, and after a few moments, the green LED in the top right hand corner of the board indicates that programming is `done'. Operate all the switches and verify that the corresponding LED lights up when any switch is thrown. Make a note of any that do not work.
+
+\subsection{The hardware manager}
+\label{sec:hardware_manager}
+
+Once you have the hardware device programmed, your Vivado window will have changed to a state where the `hardware manager' is running and visible. The appearance of the Vivado window in this state is shown in Figure \ref{fig:hardware_manager}. 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/hardware_manager.png}
+    \caption{The Vivado window when the hardware manager is open}
+    \label{fig:hardware_manager}
+\end{figure}
+
+In this state, the chip is being monitored in real time by Vivado. The Artix7 has an on board temperature sensor and analog-to-digital converter, so it can measure its own temperature. This is so that commercial applications can put in safeguards for overheating - which is why your mobile phone will probably switch itself off if you leave it on a sunny windowsill in the summer. If you double click on XADC in the Hardware pane, then click `OK' in the`New Dashboard' window that appears, this will bring up an updating strip chart of the measured temperature of the FPGA in centigrade. You can put your finger on the chip and after a while you will start to see it warm up. 
+
+If you turn off or disconnect the board with the hardware manager on, a window will come up informing you that it has lost the connection to the device. This can also happen if your USB cable isn't very well connected at either end, or when you pick the board up with the cable hanging off the connector. It's fine just to click OK if this happens. If you wish to reconnect to the board, just turn it back on, plug the cable back in, or fix whatever the hardware issue was, then at the top of the hardware manager board you can click on `Open target', then select `Auto Connect'. It should re-connect to the board when you do this. You will then have to re-program the board using the instructions in Section \ref{sec:programming}. 
+
+Once you are done with studying your hardware, you may want to start over with a new project, or make modifications to the one you have open. Before doing this, click the `X' in the hardware manager pane to close it, and then confirm that you want to close it with `OK'. This will take you back to the more regular appearance of the Vivado window so you can proceed with further modifications, or close the project and create a new one.
+
+\subsection{Other project ideas}
+\label{sec:other_ideas}
+
+Here are some other projects you might try. Some of them are very modest modifications to the project already described. Others are more substantial new work. Remember that whenever you modify the constraints file or any of the VHDL code in your projects, you must use ctrl-s to save the changes to your files, at which point the asterisks next to their names should disappear, then redo the process of synthesis, implementation and bitstream generation. Note that you can take a short-cut by clicking on `Generate Bitstream', which will cause it to synthesise and implement as well, after it prompts you to confirm that it's okay for that to happen. This saves you effort, but it also means that if something goes wrong it may be less obvious to you at which stage it failed.
+
+One additional piece of advice. In my experience more than half of student mistakes have to do with syntax errors in the constraint file, usually with the various square brackets and curly braces. Double-check that you haven't left any stray braces lying around as they are hard to spot in the generally cluttered syntax of these files. If your constraint file is faulty, this may cause the build to fail at the last stage when Vivado is generating the bitstream. This is a clue that can help you go back and give the constraint file extra scrutiny.
+
+For the projects that require quite major changes to the VHDL code and constraints, you might be better off starting again with a new project. To do this you can either close the project you are currently working on using \texttt{File->Close project} from the file menu, or much as you can do in WORD or EXCEL, you can instead use \texttt{File->Project->Save As...}. The latter will create a copy of your current project, allowing you to select the project location, which should certainly be \texttt{/home/physics/vivado\_projects}, and a new project name, which should suit whatever the modified project is going to do. This way your current functioning project remains intact, but you avoid having to set up a new project from scratch, since you can now go on to modify the copy without losing the original.
+
+After all that, here are some ideas for other projects you could usefully work on.
+
+\begin{enumerate}
+    \item Change to 
+\begin{minted}{vhdl}
+    led <= not(sw);
+\end{minted}
+    so that the LEDs are off when the switches are on.
+    \item Make the bottom 8 switches control the top 8 LEDs and vice versa. To do this, use the downto mechanism to refer to a subset of the lines of a bus, so
+\begin{minted}{vhdl}
+    led(7 downto 0) <= sw(15 downto 8);
+    led(15 downto 8) <= sw(7 downto 0);
+\end{minted}
+    \item Change the constraint file so that only two of the switches and one LED are enabled. Do this by commenting out all the others. But, also, name the switches and the LED as separate discrete ports instead of elements of a bus. So, for example, where the constraint file currently says
+\begin{minted}{tcl}
+set_property PACKAGE_PIN W16 [get_ports {sw[2]}]
+	set_property IOSTANDARD LVCMOS33 [get_ports {sw[2]}]
+\end{minted}
+    you should modify each of the two switches left so it is a discrete one-element bit rather than a bus element, as follows
+\begin{minted}{tcl}
+set_property PACKAGE_PIN W16 [get_ports {swone}]
+	set_property IOSTANDARD LVCMOS33 [get_ports {swone}]
+\end{minted}
+and similarly for the two lines corresponding to the other switch. In your VHDL code, you need to declare the switch as a separate port, so if the new names of your two switches are swone and swtwo and your single LED is just named led, then your VHDL code port section becomes
+\begin{minted}{vhdl}
+entity switch_to_led is
+    Port ( swone : in STD_LOGIC;
+           swtwo : in STD_LOGIC;
+           led : out STD_LOGIC);
+end switch_to_led;
+\end{minted}
+Notice that once the inputs and outputs are no longer buses but single bits, the data type changes from STD\_LOGIC\_VECTOR to STD\_LOGIC. Now that you have simpler discrete inputs and outputs, try the logic gates, so that in the architecture portion of your code you could write
+\begin{minted}{vhdl}
+architecture Behavioral of switch_to_led is
+begin
+    led <= swone xor swtwo;
+end Behavioral;
+\end{minted}
+Check that the logic gates have the correct behaviour.
+\item 
+Work out a simple set of logic gates that implement a one bit adder with carry. The functionality should be, when both the inputs are zero, the output is zero and the carry is zero. When one of the inputs is one and the other is zero, the output is one but the carry is zero. When both the inputs are one, the output is zero and the carry is one. Both the output and the carry are displayed on LEDs. Design your logic to implement this simple adder, and build and test your design on your board.
+\item 
+Implement a one bit adder, but this time it needs to have three inputs, one for each of the two inputs to the one bit adder you already designed, and a third input to accept any bits carried over from another column. You'll need to figure out a truth table for the two outputs, the out for this bit and the carry out for the next one, from the three inputs, then enable three switches and two leds to test whether your logic implements the truth table, reprogram the board and test your hardware.
+\end{enumerate}
 
 \end{document}
