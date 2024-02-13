@@ -2,109 +2,56 @@
 
 \begin{document}
 
-\chapter{Sequential Circuits}
-\label{sec:registers}
+\chapter{Serial Communications}
+\label{sec:chapter_4}
 
-\section{Motivation}
-\label{sec:motivate_sequential}
+\section{Introducing the seven segment display}
+\label{sec:slow_clock}
 
-In chapter \ref{sec:logic_and_integers} we investigated logic gates
-and more general devices possessing truth tables. We can imagine 
-that a great many problems can be solved purely using logic; given enough input data bits, and enough logic gates, a configuration of 
-logic gates could be found that could produce a correct result. 
-However, there certainly exist questions that cannot be answered by logic alone. For example, how long is it between flashes of that 
-light? That one can't be done with a pure logic circuit because logic alone cannot wait or measure time. Or how about solving the equation $\tan(x)=x$?. Or how about any circuit that executes tasks in
-responds to commands issued by humans?
+The seven segment display on the BASYS3 board is the first device we have encountered that is addressed serially. The display is connected to the FPGA by a total of 12 pins. There are four pins that control which segment of the display is currently being addressed, and the other eight pins control the seven bars of the digit and the decimal point. 
 
-In these cases, we are going to need more elements in our armoury than just logic gates. The thing that these examples have in common is that solving them requires a circuit that can work with intermediate results. In the first case, if you have an oscillator, you can detect its pulses, and each time you detect a pulse, you can increment a counter, so long as you have some way of memorising where the count has got to. You can then gate the counter to start when one light pulse is detected and stop on the detection of the next one. In the second case, there are many numerical methods of solving nonlinear equations like $\tan(x)=x$, such as the Newton Raphson method. These methods rely on starting at some initial guess, then using an iterative procedure to converge on the right answer, within some required tolerance. But in order to work, these techniques need to store intermediate results, and logic gates cannot store anything. In the final
-case, the circuit has to ask for a command, wait for it to be entered, memorise it, act on it, and then perhaps ask for another command. There are plenty of intermediate results and some waiting to do.
+We leave the names of all pins connected to the display as they were in the master constraint file. The four control pins are sometimes called anodes, because you can think of each of these four pins as connecting to the positive terminals of all 8 LEDs associated with a single digit. As defined in the constraint file, \texttt{an[0]} is associated with the rightmost digit, \texttt{an[1]} with the digit second from right, and so on. The signals on these pins are active low, which means that when they are set to $0$, that connects the LEDs of the corresponding digit to the other 8 pins on the FPGA which control what pattern of LEDs are lit up for that digit. 
 
-\section{Trouble with logic}
-\label{sec:trouble}
+So, for example, if I write \texttt{"0000"} to the anode signals, this means that all four digits will display the same pattern of LEDs lit up as is represented by the signals on the other eight pins. In our first exercise with the LEDs, we will light up all four digits with the same patterns, set from eight of the switches on the board.
 
-As a first step in seeing how we might introduce some of the necessary elements into our circuit, let's consider a troublesome logical
-circuit, shown in various representations in Figure 
-\ref{fig:self_contradicting_logic}.
+The other eight pins from the display control what is actually visible from the segments of the digit and the decimal point. As for the anodes, all eight signals are active low, meaning that you have to set them to $0$ to light the corresponding segment. The names of the eight lines are \texttt{seg[0]} through \texttt{seg[6]} for the seven segments of the LED display, and \texttt{dp} for the decimal point. 
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.5\textwidth]
-    {figures/self_contradicting_logic.pdf}
-    \caption{An internally inconsistent circuit in various
-    representations.}
-    \label{fig:self_contradicting_logic}
-\end{figure}
+\section{Exercise 1}
+\label{sec:lightson}
 
-This is the kind of statement that Kurt G\"odel was worried about
-in connection with the programme of building a complete and self-consistent logical framework for mathematics \cite{Hofstadter:99665,Smullyan}. You can 
-immediately see the problem with it - if it is true that the
-statement is a lie, then it must be false, and there is a 
-contradiction.
+ Create a project that permanently sets the anode signals to all zeros, so that all four digits are being addressed simultaneously all the time. Connect eight of the BASYS3 switches to the seven segments and the decimal point. Build the project and experiment with lighting up the bars in different combinations, determining which bars on the seven segment display connect to which elements of the \texttt{an[]} array.
 
-\section{Oscillators}
-\label{sec:oscillators}
+\section{Exercise 2}
+\label{sec:varydigit}
 
-In fact, this statement is rather close to the science of 
-oscillators, as you can see by inserting the simple words,
-`a moment ago'. If you say 'a moment ago, this statement was
-a lie', then it's fine because a moment ago it can have been 
-a lie, so it is now a true statement that it was a lie
-before. A moment from now, it will be false that a moment ago
-the statement was a lie, actually it was true then, and so forth.
-In science terms, if we insert a time delay in the loop with 
-the not gate, there is a consistent signal that can exist
-indefinitely in the circuit.
-In Figure \ref{fig:oscillator_logic} a $\rm 1\,ns$
-time delay has been inserted, resulting in a $\rm 2\,ns$ period
-square wave oscillator.
+Now modify the project so that four more of the switches on the BASYS3 control which of the digits are connected to the switches that were previously controlling all the digits at once.
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.5\textwidth]
-    {chapter_3/figures/oscillator_logic.pdf}
-    \caption{An oscillator made from a not gate and a time delay.}
-    \label{fig:oscillator_logic}
-\end{figure}
+\section{Slow cycling}
+\label{sec:slowcycle}
 
-All oscillators can be modelled as closed loops with waves travelling around them satisfying Nyquist's criterion, which is that if you break the loop and inject an periodic signal into the broken end in a
-forwards direction, if the signal arriving at the other broken end behind you with the same phase and amplitude as the injected signal, then the circuit, when reconnected, will support that oscillation indefinitely. In this case it works because the $\rm 1\,ns$ delay is half a period, so it flips the sign of the square wave, and the not
-gate flips it back again, so the round trip phase shift is a full
-cycle.
+In last weeks lab we built a 32 bit counter that has a count rate, dictated by the external clock period, of one count every $\rm 10\,ns$. However, in order to use this display, we wish to count much more slowly, and furthermore to use those slow counts to determine which digit is being addressed, so that we can address them all in turn. At first, we want to switch between the digits so slowly that we can see that switching taking place. Therefore, use the formula worked out in class to work out which counter bit has a period of approximately one second. Say this bit is $n$. Then bits $n$ and $n+1$ form a two bit counter that counts from $0$ to $3$ and then resets and does it all again. You can then use a conditional assignment to associate the values of the binary counter with anode port patterns that select each digit in turn. For example, when the counter reads \texttt{"00"} that could translate to an anode bit pattern of \texttt{"1110"} to select the rightmost digit only.
+    
+\section{Exercise 3}
+\label{sec:slowcycle}
 
-Oscillators are going to play an important role in digital circuits, 
-but they are difficult to fabricate on conventional semiconductor
-wafers, so commonly the oscillator is an external device mounted
-next to the digital processor, such as a crystal or MEMs oscillator. These cost litle and have a frequency stability of tens of
-parts per million. If you need a far more stable oscillator,
-commercial reference oscillators based on atomic transitions in
-caesium or rubidium routinely achieve frequency stabilities of
-parts in $10^{11}$. Intermediate performance is achieved by
-quartz oscillators phase locked to the 1 pulse-per-second 
-carrier transmitted by the GPS satellite system. Digital signal
-processing circuits like FPGAs also often incorporate phase locked
-loops, which can generate an internal square wave oscillator on the
-chip which is phase locked to the internal reference, even if the 
-required frequency isn't the same as that of the reference. 
+Make a fast counter with 32 bits. Do not forget to uncomment the lines corresponding to the external clock in the constraint file, and to uncomment the numeric data type library at the top of your VHDL code. You will have to make a \texttt{std\_logic\_vector} signal having 32 bits to cast the clock into logic form. Create also a two bit wide signal that is wired to the bits of the clock corresponding to a least significant bit count rate of approximately one Hz. Use a conditional assignment to assign the anode pins to select a different clock digit, from right to left, as the counter increments. Now you should be able to use 8 switches to address each of the four digits of the display in turn, and at a one second switch rate between digits you should be able to see, manually, how the four digits are addressed sequentially.
 
-\section{Registers}
-\label{sec:registers}
+\section{Exercise 4}
+\label{sec:fastcycle}
 
-The value of oscillators is that they enable timing of processes, because the regular oscillation of an incoming square wave from the oscillator can be used to drive a counter. However, counters require some form of memory to store the current value that the count has reached. Logic gates cannot be made to store anything on their own, so a new type of component is needed. The simplest form of storage available in a logic circuit is a register, or bank of registers, which can store a binary number for some defined period of time. The hardware circuit that enables registers to store information on an FPGA is called a D flip-flop. 
+You should now calculate which bits of the counter will cause the digit scan rate to be about a quarter of a millisecond per digit. Change the two bits used to assign the anode pin values to the two bits that have this switch rate. When you re-build the code, all four digits should again appear lit, but this time you know that the four digits are being addressed sequentially, rather than all at the same time.
 
-A diagram of a D flip-flop is shown in Figure
-\ref{fig:dflipflop}.
+\section{Exercise 5}
+\label{sec:food}
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/d_flip_flop_open.pdf}
-    \caption{Standard schematic representation of a  D flip-flop circuit.}
-    \label{fig:dflipflop}
-\end{figure}
+Next by working out the specific LED bar patterns associated with these letters, and using a conditional assignment to set the bar patterns on 
+the display dependent on which digit is currently being addressed, write
+the word $F00d$ in the display.
 
-The flip-flop has three ports, two input and one output. One of the input ports is dedicated to an oscillator input signal. Often these signals are referred to as clocks, and \texttt{clk} will often be the name of the incoming signal, but really it is just a square wave oscillator. The other input signal I will call D, and the output signal is Q. For now let us think of D and Q as single bit signals. If we wish to store more than one bit, a bank of D flip-flops is connected in parallel to the same oscillator, and one flip-flop handles each bit.
+\section{Exercise 6}
+\label{sec:switchdisplay}
 
-The function of the flip-flop can be thought of classically as follows. When the rising edge of the oscillator input is detected, the digital signal present at $D$ at that time is copied to $Q$, where it remains persistent until the next rising edge of the clock input, when the cycle repeats. The process of reading the signal at $D$ and setting the $Q$ output equal to that signal is called a register transfer. Because the signal is held at the Q output for a clock period, this provides a storage mechanism for digital data.
-
-
+Work out the bit patterns in the anode bars to display the sixteen hexadecimal digits, \texttt{0-9} and \texttt{a-f}. 
+Your BASYS3 board has four 7 segment displays on it, each of which can display any of these sixteen digits. It also has 16 switches, which you can think of as 4 groups of 4. Each group of 4 switches has 16 different possible configurations, 0000 through 1111. Write a VHDL program that allows you to display any combination of four hexadecimal digits by setting the switches accordingly. For example, to display the word \texttt{F00d}, your switch configuration would be \texttt{1111000000001101}. 
 
 \end{document}

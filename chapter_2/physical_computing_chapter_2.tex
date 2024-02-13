@@ -2,662 +2,327 @@
 
 \begin{document}
 
-\chapter{Logic and Integers}
-\label{ch:arithmetic}
+\chapter{Sequential Circuits and Register Transfer}
+\label{sec:registers}
 
-\section{Logic Gates}
-\label{sec:logicgates}
+\section{Motivation}
+\label{sec:motivate_sequential}
 
-We start our physical computing course where all beginners courses on digital circuits begin, with logic gates.
-A logic gate is an abstract operation having a single digital output and one or more digital inputs. There are seven
-logic gates that you will see on schematics. The simplest of them is a NOT gate, or inverter, mentioned in the preface,
-whose output is $1$ when its single input is $0$, and $0$ when the input is $1$. The next simplest gates each have two inputs. The two input AND gate has output $1$ only when both its inputs are $1$, the two input OR gate has output $1$ when either or both of its inputs are $1$, and the two input XOR (exclusive or) gate has output $1$ when either one, but not both, of its inputs are $1$. That's four so far. The other three gates consist of the AND, OR and XOR gates with an inverter on the output, forming the NAND, NOR and XNOR gates. The six two-input gates generalise to more than two inputs. For example, a 3 input XOR gate has output $1$ when any one, but not more than one, of its inputs is $1$.
+In chapter \ref{sec:logic_and_integers} we investigated logic gates
+and more general devices possessing truth tables. We can imagine 
+that a great many problems can be solved purely using logic; given enough input data bits, and enough logic gates, a configuration of 
+logic gates could be found that could produce a correct result. 
+However, there certainly exist questions that cannot be answered by logic alone. For example, how long is it between flashes of that 
+light? That one can't be done with a pure logic circuit because logic alone cannot wait or measure time. Or how about solving the equation $\tan(x)=x$?. Or how about any circuit that executes tasks in
+responds to commands issued by humans?
 
-An alternative to these written descriptions of functionality is to tabulate the outputs for each possible combination of inputs. Such tables are called truth tables. The truth tables for the four gates NOT, AND, OR and XOR are shown in Figure \ref{fig:logic_gates_figure}
-along with the symbols representing the gates. The figure caption tells you how to draw the other three gates NAND, NOR and XNOR. 
+In these cases, we are going to need more elements in our armoury than just logic gates. The thing that these examples have in common is that solving them requires a circuit that can work with intermediate results. In the first case, if you have an oscillator, you can detect its pulses, and each time you detect a pulse, you can increment a counter, so long as you have some way of memorising where the count has got to. You can then gate the counter to start when one light pulse is detected and stop on the detection of the next one. In the second case, there are many numerical methods of solving nonlinear equations like $\tan(x)=x$, such as the Newton Raphson method. These methods rely on starting at some initial guess, then using an iterative procedure to converge on the right answer, within some required tolerance. But in order to work, these techniques need to store intermediate results, and logic gates cannot store anything. In the final
+case, the circuit has to ask for a command, wait for it to be entered, memorise it, act on it, and then perhaps ask for another command. There are plenty of intermediate results and some waiting to do.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.5\textwidth]{figures/logic_gates_figure.pdf}
-\caption{\label{fig:logic_gates_figure} Truth tables and symbols for four of the seven logic gates commonly encountered. The other three, NAND, NOR and XNOR are obtained by adding a not at the output of AND, OR and XOR, respectively. The symbols are the same as for AND, OR and XOR except for the addition of a small circle like that on the right side of the NOT gate. Sometimes you will also see a small circle on one of the input leads before the gate body. For example, if this circle before the body of the AND gate appears on the b input, it means `a and not b.'}
-\end{figure}
+\section{Trouble with logic}
+\label{sec:trouble}
 
-\section{De Morgan's Laws}
-\label{sec:demorgan}
-
-It turns out that you can build AND gates out of OR gates and NOT gates, or OR gates out of AND gates and NOT gates, as a consequence of a useful piece of maths that comes from the theory of sets, called De Morgan's laws. In the theory of sets, if $A$ and $B$ are each sets, then $A\cap B$ is called the intersection of $A$ and $B$, and means all the elements that are in both set A and set B, and $A\cup B$ is called the union of $A$ and $B$ and means all the elements that are set A or set B. So there is a direct correspondence between the logical $\rm AND$ and the intersection, and between the logical $\rm OR$ and the union. What about $\rm NOT$? In set theory the symbol for all the elements not in set $A$ is the complement of $A$, or $\overline{A}$. There are two De Morgan's Laws, and both can be stated either in set notation or in logic notation. The logical statements are
-
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.45\textwidth]{figures/venn_diagram_figure.pdf}
-    \caption{\label{fig:venn_diagram_figure} Venn diagrams illustrating De Morgan's laws.}
-\end{figure}
-
-\begin{align}
-\neg(a\&b) &= \neg a | \neg b
-\label{eq:demorganone} \\
-\neg(a|b)&=\neg a \& \neg b.
-\label{eq:demorgantwo} \\
-\nonumber
-\end{align}
-In words, Equation \ref{eq:demorganone} states that not(a and b) is the same as (not a) or (not b), and Equation \ref{eq:demorgantwo} states that not(a or b) is the same thing as (not a) and (not b). The same two laws can be stated in set notation as
-\begin{align}
-    \overline{A\cap B}&=\overline{A}\cup\overline{B}
-    \label{eq:demorganoneset} \\
-    \overline{A\cup B}&=\overline{A}\cap\overline{B}.
-    \label{eq:demorgantwoset} \\ \nonumber
-\end{align}
-If you like Venn diagrams, you can prove De Morgan's Laws with them. This is done in Figure \ref{fig:venn_diagram_figure}. The rectangle represents all objects in some space, everything inside the left hand ellipse is in set A, and everything inside the right hand ellipse is in set B. The complements of $A$ and $B$ are shown in the second row. The union and intersection of $A$ and $B$ are in the third row. The fourth row shows the complements of the union and the intersection of $A$ and $B$. The union of $\overline{A}$ and $\overline{B}$ is the areas that are blue in either of the diagrams in the second row. This is everything except the thin white sliver common between both $A$ and $B$, in other words it is the complement of the intersection of $A$ and $B$. This proves De Morgan's first law, Equations \ref{eq:demorganone} and \ref{eq:demorganoneset}. The intersection of $\overline{A}$ and $\overline{B}$ is the areas that are blue in both of the diagrams in the second row. This is everything that isn't in either of the white ellipses of $A$ or $B$, in other words it is the complement of the union of $A$ and $B$. This proves De Morgan's second law, Equations \ref{eq:demorgantwo} and \ref{eq:demorgantwoset}.
-
-De Morgan's laws simplify the job of chip designers since essentially all of the logic gate elements on a chip may be fabricated out of either OR gates or AND gates, plus inverters. Figure \ref{fig:de_morgan_logic} is a third statement of De Morgan's laws in terms of the symbols for the gates themselves.
+As a first step in seeing how we might introduce some of the necessary elements into our circuit, let's consider a troublesome logical
+circuit, shown in various representations in Figure 
+\ref{fig:self_contradicting_logic}.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.2\textwidth]{figures/de_morgan_logic.pdf}
-    \caption{\label{fig:de_morgan_logic} De Morgan's laws in terms of the equivalence between different types of logic gate.}
+    \includegraphics[width=0.5\textwidth]
+    {figures/self_contradicting_logic.pdf}
+    \caption{An internally inconsistent circuit in various
+    representations.}
+    \label{fig:self_contradicting_logic}
 \end{figure}
 
-\section{Parallel Buses}
-\label{sec:parallel_buses}
+This is the kind of statement that Kurt G\"odel was worried about
+in connection with the programme of building a complete and self-consistent logical framework for mathematics \cite{Hofstadter:99665,Smullyan}. You can 
+immediately see the problem with it - if it is true that the
+statement is a lie, then it must be false, and there is a 
+contradiction.
 
-We aren't going to get very far if we only ever deal with one bit at a time. The simplest way to streamline manipulations of multiple bits is to perform the same operation on many bits in parallel. A collection of bits in parallel is called a bus, and the number of bits in the bus is called the bus width. Frequently buses consist of 8, 16 or 32 bits in parallel. There are other kinds of buses other than parallel, and we will discuss some of these presently, but for now just imagine an assembly of signals in a set of wires. Buses are ordered. In other words, the position of a particular bit of a bus is well defined. Usually we think of a bus as an ordered set of bits from left to right, with the rightmost bit called the least significant bit, or LSB, and the leftmost bit called the most significant bit, or MSB. This is in preparation for use of parallel buses to represent integers, which we will discuss in Section \ref{sec:logic_and_integers}. 
-
-The logic operations defined in Section \ref{sec:logicgates} were so far discussed as operating on a single bit, but they can also operate on buses containing many bits, so long as each input and output has the same bus width. Used in this way, the logic operations NOT ($\neg$), AND ($\&$), OR ($|$), XOR ($\oplus)$, NAND ($\neg\&$), NOR ($\neg|$) and XNOR ($\neg\oplus$) are examples of `bitwise' operations, in that they operate on each bit separately and do the same thing to all the bits. So, for example,
-\begin{align}
-    \neg\,B00010000&=B11101111
-    \label{eq:first_bus_operation}
-\end{align}
- and
-\begin{align}
-   B10101010\,|\,B00010000\,&=\,B10111010.
-   \label{eq:second_bus_operation}
-\end{align}
- Here I have used the notation of a leading $B$ to mean that the sequence of digits following represents a bus of bits - just a way of expressing whether the bits in a bus are high or low, $1$ or $0$, or equivalently true or false.
- 
- There are other binary operations that can only meaningfully act on parallel buses of bits. Bit shifting operations, in particular, involve shifting the values in all the bits in a bus to the left (in the direction of the most significant bit) or to the right (in the direction of the least significant bit). As a consequence, either the rightmost or the leftmost bit falls off the end of the bus and is lost, and a gap appears at the other end. In a logical bit-shift operation, the gap is filled with a zero. In an arithmetic bit shift, the gap is filled with a copy of the value in the bit that must moved along to create the gap. Finally, you could possibly place the value in the bit that fell off the other end of the bus in this position. All three types of bitshift operations can sometimes be needed. Where the bus is representing logical rather than arithmetical data, logical bit shifting is the most common. An exercise in Appendix \ref{sec:logic_in_vhdl} will show you how to execute logical bit shifts on buses representing logical data in the hardware description language VHDL.
- 
- The use of binary operations to simplify and speed up computer code is an interesting subject. There is a nice book by Warren \cite{Warren:10.5555/2462741} where you can read about logical consequences of De Morgan's laws and mathematical tricks involving bitwise logic operations combined with bit shifts, particularly in Chapters 1 and 2, which I will make available to you on Collaborate.
-
-\section{Logic and Integer Arithmetic}
-\label{sec:logic_and_integers}
-
-\subsection{Logic and the Foundations of Mathematics}
-\label{sec:logicandmathsfoundations}
-
-De Morgan's laws are an example of the connection between the theory of sets and logic. This is natural because both sets and logic are closely connected to the foundations of mathematics. The drive to build a logical foundation for mathematics was an area of intense activity at the turn of the 20th century. The famous series of books, Principia Mathematica, by Russell and Whitehead \cite{Whitehead:268025}, an attempt to build a consistent and complete logical foundation for mathematics, famously collided with the philosophy of Kurt G\"odel who proved that the task is impossible. Modern formulations of axiomatic set theory, or the logical foundations of mathematics, are based on Zermelo-Fraenkel set theory, and it is in this context that modern developments in the logical foundation of mathematics are usually discussed. The subject of the logical foundations of mathematics is fascinating. If you are interested, and there are many popular books on the subject which will stretch your mind, especially if you try and do the puzzles \cite{Hofstadter:99665,Smullyan} !
-
-Fortunately we do not need to construct a complete logical basis for mathematics, only to work out some ways of using logic gates to do simple arithmetic, which is much easier. Nonetheless, we shall quickly discover that in using logic to do mathematics you have to be careful to avoid encountering difficulties. These difficulties shall be discussed in Chapter \ref{sec:registers}.
-
-\subsection{Binary Representation of Positive Integers}
-\label{sec:postiveintegers}
-
-Let us first consider representation of integers. Bits naturally lead to the use of binary numbers to represent integers. Any sensible representation will have the integer zero represented by any number of $0$s, and the integer one represented by a single $1$. If the integers are all positive or zero, then all we need is ordinary binary numbers, so the numbers 0 to 15 can be represented by three binary digits. In ascending order, $B0000$, $B0001$, $B0010$, $B0011$ $B0100$, $B0101$, $B0110$, $B0111$, $B1000$, $B1000$, $B1001$, $B1010$, $B1011$ $B1100$, $B1101$, $B1110$, $B1111$. If we want to represent any larger number than 15, we will need more bits in our binary representation than four. The largest unsigned integer representable using an $N$ bit parallel bus is $2^N-1$.
-
-\subsection{Hexadecimal Notation}
-\label{sec:hexadecimal}
-
-I am already getting tired of writing all those zeros and ones, and in digital signal processing it is common to represent collections of binary numbers using hexadecimal, or base 16. Because people commonly have ten figures, we have developed naturallly to have symbols for each of the counting numbers between 0 and 9, and think of larger numbers as groups of 10, or groups of 100, and so on. However, suppose we had actually had 16 fingers! We would then have naturally developed separate symbols for the first 16 integers 0 to 15 that are also each representable by four binary bits. Table \ref{tab:hexadecimal} shows the first 16 numbers from the set of positive integers and zero, together with their decimal and hexadecimal representations.
-
-\begin{table}[hbt]
-    \centering
-    \begin{tabular}{|c|c|c|}
-    \hline
-         decimal & binary & hexadecimal \\
-         \hline\hline
-         0 & B0000 & 0x0 \\
-         1 & B0001 & 0x1 \\
-         2 & B0010 & 0x2 \\
-         3 & B0011 & 0x3 \\
-         4 & B0100 & 0x4 \\
-         5 & B0101 & 0x5 \\
-         6 & B0110 & 0x6 \\
-         7 & B0111 & 0x7 \\
-         8 & B1000 & 0x8 \\
-         9 & B1001 & 0x9 \\
-         10 & B1010 & 0xa \\
-         11 & B1011 & 0xb \\
-         12 & B1100 & 0xc \\
-         13 & B1101 & 0xd \\
-         14 & B1110 & 0xe \\
-         15 & B1111 & 0xf \\
-        \hline
-    \end{tabular}
-    \caption{Decimal, binary and hexadecimal representation of zero and the first fifteen positive integers.}
-    \label{tab:hexadecimal}
-\end{table}
-
-The hexadecimal notation is extensible to numbers represented by many more bits. For example, on computers integers are commonly represented as 32 bit binary numbers, so that the unsigned integer 1 would be represented as $\rm B00000000000000000000000000000001$. In hexadecimal this is $\rm 0x00000001$, which is still a lot of leading zeros, but you can see how the reduction in the number of symbols by a factor of four when using hexadecimal notation instead of binary is attractive.
-
-\subsection{Binary Counters and Oscillators}
+\section{Oscillators}
 \label{sec:oscillators}
 
-While we are looking at this table, it makes obvious another useful feature of binary numbers, and that is the behaviour of the binary digits. Scan down the column of binary numbers and look only at the least significant bit (LSB). Notice that as the count proceeds, the least significant bit oscillates back and forth between $0$ and $1$ with a period of two counting numbers. Now look at the second-least significant bit. This bit also oscillates back and forth between zero and one, but the period of this oscillation is four counts. The third least significant bit also oscillates periodically with a period of 8 counts, and the most significant bit (MSB) has a period of the full 16 counts. This means that if we can cause a bus to count upwards from zero, each subsequent bit can serve as an oscillator with a period of twice that of the previous bit. It turns out to be very useful indeed to be able to make oscillators with different periods in digital devices, and we shall see the power of this in Chapter \ref{sec:registers}.
-
-\subsection{Overflows in Binary Arithmetic}
-\label{sec:overflows}
-
-We have already realised that we need more than four bits to represent a positive binary number greater than 15. What is the convention for dealing with overflows? What happens when you add 1 to 0xf ? We will operate with the following convention, following digital signal processing conventions: {\it overflows are disregarded}. If you require more bits than you have designed into your system to get the right answer, it's just tough - you should have used more bits. While this might sound harsh, in fact the convention that overflows are ignored is very useful indeed.
-
-The first reason for this is to do with counters. As alluded to before, if we count up in binary, each successively more significant bit behaves like an oscillator with half the period of the bit to the right. What about the most significant bit? What does it do? It starts out as 0, then half way to the maximum capacity of the bus, it switches to 1. What happens when it reaches full capacity? This is when all the bits are $1$. The next number in the sequence, {\it ignoring the overflow} is all zeros. In other words, the counter just resets to zero, and then keeps counting. A counter that starts at zero, then gets to the maximum number that can be represented with the number of bits, then resets to zero automatically and starts again, is very useful indeed!
-
-There's another very useful application of ignoring overflows. It means that a binary number of N bits containing all 1s is adjacent in the sequence of binary numbers to a binary number containing all 0s. This comes in very handy when representing negative integers with a system called {\it twos complement} which we will discuss in the next section.
-
-To summarise this section, in a binary representation of numbers, overflows are ignored. If you have 4 bits, then all numbers are represented using 4 bits, and if you end up running off the end, you neglect any overflows and instead your sequence wraps around back to the other end.
-
-\subsection{Negative Integers}
-\label{sec:negatives}
-
-What about if we have negative integers? These are almost always represented using a method called twos complement. Suppose we have 4 bits in our binary representation. So far we have thought of these as representing the unsigned integers between 0 and 15. However, recall that the binary number $B1111$, neglecting overflows, is adjacent to the binary number $B0000$. How about using $B1111$ to represent -1? Following the same logic, $B1110$ is adjacent to $B1111$, so it must be -2. Carrying on with this argument, we reach a binary four-bit twos complement representation for the signed integers in the range $[-8,+7]$,
-
-\begin{table}[hbt]
-    \centering
-    \begin{tabular}{|c|c|c|}
-    \hline
-         decimal & binary & hexadecimal \\
-         \hline\hline
-         0 & B0000 & 0x0 \\
-         1 & B0001 & 0x1 \\
-         2 & B0010 & 0x2 \\
-         3 & B0011 & 0x3 \\
-         4 & B0100 & 0x4 \\
-         5 & B0101 & 0x5 \\
-         6 & B0110 & 0x6 \\
-         7 & B0111 & 0x7 \\
-         -8 & B1000 & 0x8 \\
-         -7 & B1001 & 0x9 \\
-         -6 & B1010 & 0xa \\
-         -5 & B1011 & 0xb \\
-         -4 & B1100 & 0xc \\
-         -3 & B1101 & 0xd \\
-         -2 & B1110 & 0xe \\
-         -1 & B1111 & 0xf \\
-        \hline
-    \end{tabular}
-    \caption{Decimal, binary and hexadecimal symbols for the twos complement representation of the signed integers in the range $-8$ to $+7$ inclusive.}
-    \label{tab:twoscomplement}
-\end{table}
-
-You might notice that moving from $-1$ to $-8$ is a binary count upwards but with the symbols $1$ and $0$ reversed. This means that there is a simple logical way to deduce the binary representation of $-x$ from the binary representation of $+x$. This is
-\begin{align}
-    -x=\neg x+1.
-\end{align}
-Let us check that this works. For example, the binary representation of 3 is $B0011$. We take the bitwise not of this binary sequence to get $B1100$, then we add one to this to get $B1101$. From Table \ref{tab:twoscomplement} this represent -3. Try a couple of others. Note that it won't work for -8, because +8 cannot be represented in twos complement signed integer arithmetic using only four bits.
-
-\subsection{Integer addition and multiplication}
-\label{sec:addmultiply}
-
-I am about to teach you how to add and multiply binary numbers by hand as you might have learned to do in school for decimal numbers. Of course, there are calculators that have a binary mode - indeed, yours probably does. You can do your binary calculations there, or check your manual calculations using them. There are also online binary and hexadecimal calculators - see, for example \url{calculator.net/binary-calculator.html}.
-
-When you were at school you were probably taught about column addition as a way of adding together two numbers each of which had multiple non-zero digits. You basically write out the two numbers one above the other with each succesive digit aligning vertically with the other number to be added. You then add the digits in the corresponding columns starting with the least significant digit and moving across until you have done the most significant one. The interesting case is when the sum of the two digits exceeds the capacity of the symbols available from a single digit. In this case you 'carry' the difference to the next column, usually writing the carried number below the output to remind you to add it on when you get to the next column. If there are any carry digits left at the end, these are added on the left. 
-
-It's almost the same thinking about binary addition, except the 'columns' instead of being $1$, $10$, $100$ etc are $1$, $2$, $4$, $\cdots$. In both cases, the M\textsuperscript{th} column represents $\rm (base)^{(M-1)}$. The only other modification is that you methodically {\it ignore the overflows}. Let us do some examples. For a start, $2+3$ or $B0010+B0011$. Figure \ref{fig:addition_example_1} shows how this is carried out using column addition.
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.1\textwidth]{figures/addition_example_1.pdf}
-    \caption{Adding 2 and 3 in binary.}
-    \label{fig:addition_example_1}
-\end{figure}
-In this example, the second column addition results in a carry of $B1$ to the third column, and the third column then just contains that $B1$, so that the overall answer is $1$ times $2^2$ + $1$ times $2^0$, or five.
-
-In the next example, shown in Figure \ref{fig:addition_example_2}, we carry out $-3+7$. The four bit binary representation of $+7$ is $B0111$. To obtain the binary representation of $-3$ we start with $+3$ which is $B0011$. We first do a bitwise not, leading to $B1100$, then we add a least significant bit, $B0001$, to obtain $B1101$, and that's our four-bit binary representation of $-3$. Finally, we carry out the column addition. Notice that when we get the answer we truncate at 4 bits, discarding the overflow $1$. This leads to the correct binary representation of the answer, $B0100$, which is +4.
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.1\textwidth]{figures/addition_example_2.pdf}
-    \caption{Addition of $-3$ and $+7$ in binary}
-    \label{fig:addition_example_2}
-\end{figure}
-For a final example of addition, let us consider $2-4$. We do this subtraction by considering it as $2+(-4)$, and then working out the twos complement representation of $-4$. To do this, start with $+4$, which is $B0100$, perform a bitwise not to obtain $B1011$, and add one LSB to obtain $B1100$. The addition is then carried out as shown in Figure \ref{fig:addition_example_3}. There turn out to be no carry bits necessary in this sum, and the resulting binary $B1110$ is $-2$ in decimal, as can be found out by subtracting $1$LSB to obtain $B1101$ and doing the bitwise not to obtain $B0010$, which is $+2$, hence the original $B1110$ must be $-2$. This is also confirmed by Table \ref{tab:twoscomplement}.
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.1\textwidth]{figures/addition_example_3.pdf}
-    \caption{The addition of $+2$ and $-4$.}
-    \label{fig:addition_example_3}
-\end{figure}
-
-Next we move on to multiplication, which is carried out using the columnwise long multiplication technique you were taught in school. An example is shown in Figure \ref{fig:multiplication_example_1}.
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.18\textwidth]{figures/multiplication_example_1.pdf}
-    \caption{Multiplication of the four bit representation of $-1$ by itself.}
-    \label{fig:multiplication_example_1}
-\end{figure}
-The two inputs are $B1111$, which is the 4-bit twos complement representation of $-1$. We expect to obtain $-1\times-1=+1$. We proceed as we do in decimal long multiplication. First the least significant bit of the second number by all digits of the first one, placing the result on the top output row. Some notation if you haven't encountered it: a `leading' digit is one to the left of all the digits visible in a set of digits; a `trailing' digit is one to the right of those digits. Now add a trailing zero to the LSB of the next row, then proceed to multiply the second least significant bit of the second input number by the first row, and place the binary result to the left of the trailing zero. Repeat with the other two bits of the second input number. You will now have four rows containing binary numbers with one more bit in each successive row. Add the four rows up. 
-
-When adding the four rows up we will encounter an oddity of addition that isn't often encountered in decimal column addition, although it can also happen. In the later columns, there end up being in some cases four or more $1$s to add. In these cases the result has more than two digits in binary. For example, in binary $B1+B1+B1+B1=B100$. In these cases you end up adding carry digits to other columns than that immediately to the left of the one you are working on. In the case of a $B100$ result in a column addition, you'd need to add a carry $1$ to the column two to the left of the current. And so on. In some cases there will end up being multiple carry $1$s in a column. This happens in in column 7 of the example. 
-
-In fact, you only need to carry out sufficient columns of the multiplication and subsequent addition to get the result for the four least significant bits of the long multiply, because all higher bits are going to be discarded. The result, truncating to four bits, is $B0001$, so that in 4-bit twos complement binary $-1\times-1=+1$. So, everything seems consistent.
-
-\section{Sign-extension}
-\label{sec:signextension}
-
-It often happens that you want to multiply two numbers represented
-in some N-bit binary representation, and it is clear that the 
-result is going to require more than N bits to represent it. 
-When this happens, it is necessary to add more bits to the left
-of the MSB in each of the input numbers. If you are using 
-an unsigned representation, you just add zeros. However, if you
-are in a twos complement signed representation, and the input 
-number is negative, then the leftmost bit will be $1$. It turns
-out that if you pad negative numbers, those with a leftmost $1$, 
-with $1$'s to the left, then this maintains the binary number
-as having the same numerical value in the expanded representation
-with more bits, just as padding a positive binary number with 
-zeros to the left maintains its value. This procedure of padding
-based on the value of the most significant bit is called 
-sign extension. The same rule applies to real numbers with 
-fractional parts, which we discuss next.
-
-\section{Fixed point arithmetic with real numbers}
-\label{sec:fixedpoint}
-
-Real numbers that are not integers, can be multiplied and added together using the same rules as described above, with three
-additional new elements. The representation we arrive at 
-after adding these elements is known as fixed point representation.
-It is somewhat of a misnomer, because there is no
-point in a binary sequence, and because the position of 
-$2^0$ does in fact move around between columns as we shall
-see. The terminology makes sense in the context of the 
-popular floating point representation of numbers, where the 
-position of the $2^0$ column is recorded in a second binary 
-number, the exponent. Floating point numbers are in practice
-tricky to manipulate digitally due to the large number of
-special cases that are necessary to represent all the 
-possible numbers in a range, so a discussion of them is beyond
-the scope of this book. You can read about floating point
-representation of numbers in \cite{Warren:10.5555/2462741}, 
-chapter 17.
-
-The first rule concerns how to represent the fractional 
-portion of numbers. 
-We are free to interpret any one of a sequence of bits
-as representing the number $1=2^0$. When representing
-integers, the rightmost bit
-has been $1$, but if we were to make, say the third-rightmost
-bit equal to $1=2^0$, then the bit to the right of it would 
-be $2^{-1}=0.5$ and the LSB would be $2^{-2}$. In this 
-representation, the smallest positive number that could be 
-represented by the string of binary numbers would be $0.25$,
-Let's say we have six bits in our number system, and let us 
-say we wish to represent positive as well as negative real 
-numbers. The largest positive number is represented by 
-$011111$, which is $4+2+1+0.5+0.25=+7.75$. To find 
-the representation of $-7.75$, do $\neg{B011111}+1{\rm LSB}$, 
-which is $B100000+1{\rm LSB}=B100001$. The binary string for
-$-0.25$ in this representation is $B111111$, since the smallest
-negative number is all 1s. If we add this to the representation
-of $-7.75=B100001$ and discard the overflow, we obtain
-$B100000$, so the most negative number representable in six
-bit twos-complement binary with $2^0$ represented by a 1
-in the third-from-rightmost bit column is $-8$.
-
-The second rule concerns how to work out the representation of
-the answer. In addition, you ensure that the columns where
-$1=2^0$ is written are the same in both inputs, and you follow
-the same rule as for addition of signed integers, discarding any 
-overflows in the result. For multiplication, you line up the
-$2^0$ columns as before. In the result, the rule is that you
-add the number of columns to the right of $2^0$ in the two 
-inputs, and the sum of these numbers of columns is the number of
-columns to the right of $2^0=1$ in the result. This exact same
-rule is used to position the decimal point in 
-the answer to the product of two decimal numbers.
-
-\section{A fixed point multiplication example}
-\label{sec:minusfourandaquarter}
-
-Let us say we wanted to compute $-4.25^2$ in binary. In the
-same 6-bit fixed point representation discussed in 
-Section \ref{sec:fixedpoint}, $+4.25$ is $B010001$. We
-find $-4.25$ by doing $\neg(B010001)+1{\rm LSB}$, which
-is $B101110+1{\rm LSB}=B101111$. Next, we recognise that
-we will probably need some more bits, so let's just
-add another six bits to the right by sign extension,
-so that we end up with a 12 bit representation of
-$-4.25$, which is $B111111101111={\rm 0xfef}$. Not
-wanting to do a tortuous long multiplication, I use
-a web-based binary calculator to do the heavy lifting,
-taking only the 12 least significant bits of the result, and I 
-obtain $B000100100001={\rm 0x121}$.
-Following the rule that you add the 
-number of digits to the right of $1$ in each of the inputs,
-there are $2+2=4$ digits to the right of 1 in this number,
-so that the LSB represents $2^{-4}=0.0625$, which is 1/16.
-The digits other two non-zero digits are 2 and 16, so the 
-answer is $-4.25^2=16+2+0.0625=+18.0625$, which is correct.
-
-\section{Summary of Chapter \ref{ch:arithmetic}}
-\label{sec:ch1summary}
-
-In this chapter we have learned about the core logical operations
-available on digital platforms, and how the fundamental operations
-of arithmetic can be built up. We have learned how to represent
-positive and negative real numbers using fixed point twos
-complement representation. This will later on allow us to use
-our digital platforms to do digital signal processing, which is 
-one of the most important applications of digital signal processing
-units. Hopefully you see how, in principle, complex numerical
-calculations, at least those involving addition and multiplication
-can be based on simple logical operations on strings of binary 
-bits. You can now begin to appreciate what is inside a computer.
-However, there are important fundamental elements still to introduce.
-Fortunately, there are not that many more - in fact, we will meet
-them both in Chapter \ref{sec:registers}.
-
-\section{Lab Exercise 2 - Logic in VHDL}
-\label{sec:appendix_2}
-
-\subsection{Creating a new Vivado project}
-\label{sec:create_new_vivado_project}
-
-VHDL is a hardware description language for expressing the abstract functionality of digital circuits. VHDL can be compiled into an actual wiring diagram for a specific hardware device, which in this course will be a field programmable gate array, or FPGA. The FPGA we will be using in this course is from the Artix7 series made by Xilinx. Specifically the part number of the Artix7 FPGA on your BASYS3 boards is \texttt{\bf xc7a35tcpg236-1}. This is a part number that you will need every week in the lab. 
-
-The compiler that tries to turn your VHDL code into a hardware specification is actually a command line tool, but like many such tools it is usually used by way of a graphical user interface, sometimes called a software development kit (SDK). SDKs are all over the engineering world. In this course we will be using two SDKs, Vivado and Vitis. Vivado is the SDK for building the hardware, and when the hardware incorporates a microprocessor, Vitis is the SDK that we will use to program that microprocessor in the C language.
-
-A few practical details. You may have noticed that the chapters of the book correspond to the material taught in lectures, and the appendices correspond to the labs. This is deliberate. The lecture material I consider to be implementation independent; it would be the same if we were using a different HDL made by a different company for different chips, or a different SDK. The appendices are specific to our hardware. The idea is that I may have to re-write the appendices many times, but I am hoping not to have to do too much rewriting of the chapter materials.
-
-So, let's get started. For our first project we will build hardware that allows us to check that all the switches and LEDs on the BASYS3 board are working. There are two reasons for doing this. First, they might not be. The components of the BASYS3 are fairly cheap and it is not uncommon for the switches in particular to wear out and stop working. The second reason is that this is one of the simplest projects we can do, so it is a good one to start with.
-
-You will need to have read Appendix \ref{sec:our_hardware} before starting these instructions. Start up Vivado using the left hand tool shortcut. After some delay the window shown in Figure \ref{fig:vivado_startup} will appear. Note that some people become impatient and click the icon twice in which case two copies of Vivado will open. Just close one of them if this happens and use the other one.
+In fact, this statement is rather close to the science of 
+oscillators, as you can see by inserting the simple words,
+`a moment ago'. If you say 'a moment ago, this statement was
+a lie', then it's fine because a moment ago it can have been 
+a lie, so it is now a true statement that it was a lie
+before. A moment from now, it will be false that a moment ago
+the statement was a lie, actually it was true then, and so forth.
+In science terms, if we insert a time delay in the loop with 
+the not gate, there is a consistent signal that can exist
+indefinitely in the circuit.
+In Figure \ref{fig:oscillator_logic} a $\rm 1\,ns$
+time delay has been inserted, resulting in a $\rm 2\,ns$ period
+square wave oscillator.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{figures/vivado_startup.png}
-    \caption{Startup screen for the Vivado software development kit}
-    \label{fig:vivado_startup}
+    \includegraphics[width=0.5\textwidth]
+    {chapter_3/figures/oscillator_logic.pdf}
+    \caption{An oscillator made from a not gate and a time delay.}
+    \label{fig:oscillator_logic}
 \end{figure}
 
-You'll want to create a project, so left-click (henceforth whenever I ask you to click without specifying which button, I mean left-click) on `Create Project'. This brings up a subwindow that says `Create a New Vivado Project'. On the first page you are asked to give the project a name, and to specify its location. Let's call the project \texttt{check\_leds\_and\_switches}. It is an old habit of mine to use underscores instead of spaces in file and directory names. I recommend that you pick up this habit. Unix-like computers tend to place special meaning on whitespace characters like space, tab, etc and things can unexpectedly fail to work if you have files and folders that have spaces in their names. Change the project name by clicking in the box and typing the new name. For the project location, the default is your home directory but we don't want this directory to become too cluttered, so let us make a new place to keep our Vivado projects. Click on the small rectangle to the right of the Project location box, with three dots in it. This brings up a 'Choose project location' window, shown in Figure \ref{fig:choose_project_location}. 
+All oscillators can be modelled as closed loops with waves travelling around them satisfying Nyquist's criterion, which is that if you break the loop and inject an periodic signal into the broken end in a
+forwards direction, if the signal arriving at the other broken end behind you with the same phase and amplitude as the injected signal, then the circuit, when reconnected, will support that oscillation indefinitely. In this case it works because the $\rm 1\,ns$ delay is half a period, so it flips the sign of the square wave, and the not
+gate flips it back again, so the round trip phase shift is a full
+cycle.
+
+Oscillators are going to play an important role in digital circuits, 
+but they are difficult to fabricate on conventional semiconductor
+wafers, so commonly the oscillator is an external device mounted
+next to the digital processor, such as a crystal or MEMs oscillator. These cost litle and have a frequency stability of tens of
+parts per million. If you need a far more stable oscillator,
+commercial reference oscillators based on atomic transitions in
+caesium or rubidium routinely achieve frequency stabilities of
+parts in $10^{11}$. Intermediate performance is achieved by
+quartz oscillators phase locked to the 1 pulse-per-second 
+carrier transmitted by the GPS satellite system. Digital signal
+processing circuits like FPGAs also often incorporate phase locked
+loops, which can generate an internal square wave oscillator on the
+chip which is phase locked to the internal reference, even if the 
+required frequency isn't the same as that of the reference. 
+
+\section{Registers}
+\label{sec:registers}
+
+The value of oscillators is that they enable timing of processes, because the regular oscillation of an incoming square wave from the oscillator can be used to drive a counter. However, counters require some form of memory to store the current value that the count has reached. Logic gates cannot be made to store anything on their own, so a new type of component is needed. The simplest form of storage available in a logic circuit is a register, or bank of registers, which can store a binary number for some defined period of time. The hardware circuit that enables registers to store information on an FPGA is called a D flip-flop. 
+
+A diagram of a D flip-flop is shown in Figure
+\ref{fig:dflipflop}.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.5\textwidth]{figures/choose_project_location.png}
-    \caption{Window to choose project location. The 'create folder' icon is the third from the right of the small icons in the top right hand corner of the window.}
-    \label{fig:choose_project_location}
+    \includegraphics[width=0.5\textwidth]{figures/d_flip_flop_open.pdf}
+    \caption{Standard schematic representation of a  D flip-flop circuit.}
+    \label{fig:dflipflop}
 \end{figure}
 
-The default location is your home directory. In this window, we can create a sub-directory of the currently selected directory (you'll see that physics, your home directory, is highlighted), by clicking the third icon from the right in the row of small icons in the top right hand corner of this window. Type \texttt{vivado\_projects} in this window and you will see a new folder with this name appears and becomes highlighted. Click Select. This returns you to the 'New Project' window, and you will see that the project location is now \path{/home/physics/vivado_projects}. Because you have the box checked that says `Create project sub-directory', Vivado will create a further sub-directory called \texttt{check\_leds\_and\_switches} within the Vivado projects directory. By using a new directory for every Vivado project we create, we can keep ourselves organised as we do more work. You are now done picking a project name and directory, so you can click the blue Next button ato the bottom, or use the shortcut alt-n. As an aside, in Vivado and many other software packages having graphical-user-interfaces (GUIs) every button that has a label with the first capital letter underlined has a keyboard shortcut of alt-(that key). No need to use shift because alt-n is the same as alt-N by convention. 
+The flip-flop has three ports, two input and one output. One of the input ports is dedicated to an oscillator input signal. Often these signals are referred to as clocks, and \texttt{clk} will often be the name of the incoming signal, but really it is just a square wave oscillator. The other input signal I will call D, and the output signal is Q. For now let us think of D and Q as single bit signals. If we wish to store more than one bit, a bank of D flip-flops is connected in parallel to the same oscillator, and one flip-flop handles each bit.
 
-On the second page displaying in this window you keep the default which is 'RTL Project'.
+The function of the flip-flop can be thought of classically as follows. When the rising edge of the oscillator input is detected, the digital signal present at $D$ at that time is copied to $Q$, where it remains persistent until the next rising edge of the clock input, when the cycle repeats. The process of reading the signal at $D$ and setting the $Q$ output equal to that signal is called a register transfer. Because the signal is held at the Q output for a clock period, this provides a storage mechanism for digital data.
 
-On the third page you are asked to add sources. The sources are VHDL source files, and we are going to build ours from scratch, so you don't need to add any at this stage. So, Next (or alt-n) again. 
+\section{Creating a project for a sequential circuit}
+\label{sec:sequential}
 
-This brings you to the fourth page, where you are asked to add constraints. A constraint is a file that we will discuss further. It's basic functionality is to associate pins on the FPGA chip with ports, which are wires into and out of the circuit you are going to define in your VHDL code. We will always start with a standard constraint file that is supplied by Digilent, the makers of the BASYS3 board that we have lent you. You will find this file in your home directory, and it is called \texttt{Basys-3-Master.xdc}. You can add this constraint file now, or later on once the project is open. Let's add it now. Click on the '+' icon close to the top left of the window you are in, and select `Add Files...'. This will bring up a browser window, which is shown in Figure \ref{fig:add_constraint_file}.
+Circuits implementing a sequence of instructions are called sequential. To define the sequence, and indeed to have any control over the evolution of our circuit with time, we need to implement a well controlled clock. The underlying circuitry was discussed in Chapter \ref{sec:registers}. The core element is a flip-flop whose gate input is connected to an oscillator.
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/add_constraint_file.png}
-    \caption{The browser window for selecting a constraint file.}
-    \label{fig:add_constraint_file}
-\end{figure}
+Create a new VHDL project in a sub-directory of the \texttt{vivado\_projects} of your home directory. Copy the constraint file template into the project. Don't forget to check the box specifying that a copy of the constraint file should be made in the project. You can add the constraint file either when directed to specify constraints at the start of the process, or using the \texttt{add sources} button once the project is created. Don't forget to specify the correct FPGA part at the project creation stage. Remember to change the target language from Verilog to VHDL in the main pane of the project once it opens. 
 
-The browser starts in your home directory by default, which is the location of the constraint file. Click on it, and the contents at the head of the file should appear in the `File Preview' pane to the right, and the file name should also appear in the box second from bottom of the window. Click OK, or just hit the Return key, and this should close the browser window. Finally, be sure to check the box in the bottom left hand corner that says `Copy constraints files into project'. This causes Vivado to duplicate the constraints file into a subdirectory of your project folder, so that you can re-use the generic one in your home directory for future projects. You don't have any more constraint files to add, so hit Next (or alt-n).
+Note that the name of the project can start with a number, so \texttt{32bit\_counter} is a perfectly valid project name. You can also start the names of VHDL source files with numbers. However, you cannot use a number for the name of an entity in a VHDL source file. This is worth mentioning, because if you decide to give a VHDL source file a name that starts with a number, the default name of the entity in the source file will be the same, and this will cause a syntax error. You can either not use numbers for VHDL source files, or you can rename the entity in the file once you have created it, in both the \texttt{entity} and \texttt{architecture} statements.
 
-The next part of project specification is to select the Default Part, or sometimes you will instead want to select the Default Board. For today, we're just going to select the part. You'll see a long list of parts appear in a table in the lower part of this window. The list is so long that scrolling up and down it is a chore. The parts on this list are FPGA devices that is supported under your Vivado software license. One of these devices is the FPGA on the BASYS3 board, and as already mentioned the part number is \texttt{\bf xc7a35tcpg236-1}. Click in the Search window, (or alt-S) and type in the part number, and the list of parts in the table will narrow to just 1. Then, click on the one remaining row, and this part should be highlighted in blue. Note that in this table various statistics about the chip are given. It has 236 pins for input/output, 106 IOBs (input output buffers), 20800 LUT (look-up table) elements, 41600 FlipFlops, 50 block RAMs, 90 DSPs (digital signal processors), and you can use the horizontal scroll bar at the bottom to move across the table to see that it has 2 Gigabit transceivers and 2 GTPE2 transceivers, one PCIe (pci express module), 5 MMCM (multi-mode clock module), a minimum operating voltage of 0.95V, and a maximum operating voltage of 1.05V. Click next (or alt-n). This completes the specification of the project. Check that a new RTL project with the correct name of \path{check_leds_and_switches} will be created. Check that the default part is the one in bold above, of the Artix-7 family, package cpg236, and speed grade -1. Then, alt-f or click Finish. A small window indicating that some work is being done will appear and after that the Vivado window will change to the top window of the project. It might be best to use the 'square' icon in the top right of the window to maximise it to full screen. The window should appear as shown in Figure \ref{fig:vivado_project}.
+\section{32-bit Counter}
+\label{sec:32bit}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{figures/create_new_vivado_project.png}
-    \caption{A new Vivado project window on start-up.}
-    \label{fig:vivado_project}
-\end{figure}
+The first project of Lab 2 is a 32 bit counter. The upper 16 bits of the counter will be converted to binary and displayed on the LEDs. You will need to edit your constraints file in the project and uncomment the lines defining the onboard clock based on the $\rm 100\,MHz$ MEMs oscillator attached to pin $\rm W5$. These lines are shown below, after the $//$ button in the main Vivado pane was used to remove a single \# comment character from the front of each line. Note that I have inserted a backslash character `\textbackslash' half way through the \texttt{create\_clock} statement. This is just so the text doesn't run off the page. The syntax of the constraint file is based on the Tcl language, and backslash is the line continuation character in Tcl. At any rate, later on the code seems to build and run fine with this modification. But, as I said, it's only there so I can fit the relevant lines of the constraint file within the page width of the book
 
-\subsection{Organisation of the Vivado project window}
-\label{sec:vivado_project_window}
-
-The general layout is that there is a left hand `Flow Navigator' toolbar. This bar contains commmands, or directories (with a `$>$' on the left) containing more commands. At the top of this `Flow Navigator` on the right there is an underscore, which when you click on it causes the flow navigator to disappear. If this happens, you can make it reappear by clicking on the tall slim rectangle all the way on the left with `FLOW NAVIGATOR' written in it sideways. This should bring it back. The other three icons expand and collapse the contents of the `Flow Navigator', and give you some text help on what this navigator is for. 
-
-The rest of the window consists of a set of panes, each of which have tabs in them. The biggest pane currently just has a `Project Summary' in it, which we will come to in a minute. To its left there are two smaller panes stacked vertically on top of each other. The top one says `Sources' and the bottom one says `Properties'. Each of these three panes has a cross in the top right hand corner. If you click on this, the pane disappears. If this happens, you can make it reappear by clicking on 'Window' in the top left of the Vivado project window and selecting the name of the pane. Try it with one of them.
-
-At the bottom of the window is a long but squat pane with five tabs in it labelled 'Tcl Console', 'Messages', 'Log', 'Reports' and 'Design Runs'. Explore by clicking on them one-by-one. 
-
-`Tcl Console' contains an enticing window with the words `Type a Tcl command here'. This is what is visible of the command line program underlying the graphical user interface (GUI). If you were an expert, you could run the entire SDK without ever using a mouse from this window. Indeed, many professional engineers probably do exactly that. As a point of interest, Tcl was a scripting language that was very popular in the 1990s and early 2000s, then fell out of favour, but not before the entire engineering community had bought heavily into it, rather in the same way that astronomers have gone a bundle for PYTHON. The Tcl language came with some rather nice GUI widgets so the package was called Tkl/Tk, and many GUIs, including earlier versions of Vivado, were built out of Tk widgets. So, that's why it's called a Tcl command. You'll never need it but it is nice to understand why things are the way they are. If you are curious, when we get to actually running commands, you can open up this Tcl Console window and view the actual command line tools that you have invoked by clicking on the symbols. This is why I know that you could run the whole program from the command line - all the GUI does is generate Tcl commands corresponding to the mouse clicks it detects, and then displays the results in a graphical format. It is literally a graphical interface to a command line, or shell, based tool.
-
-The `Messages' tab is where you go to look for errors, warnings and information that are fed back to you after you run a command. You'll see that there are currently three messages of class info - if you uncheck the box they disappear, and if you recheck the box they come back. This is useful because if you run something and it goes wrong there may be 107 warnings of no interest and a single error that needs rectifying. By unchecking the `warnings' and `info' boxes you can view the error and do something about it.
-
-`Log' shows all the text returned by all the commands you run in a single window. It is probably not a very efficient way of getting this information - you are better off with the `Messages' tab.
-
-`Reports' is where you can view technical data about the products resulting from your design. Things like what fraction of the hardware resources on the chip are being used appear here.
-
-`Design Runs' is where you can view progress when you launch a command that takes a few minutes to complete. One of the reasons that I lend out these laptops rather than having students install the software on their own machines is that Vivado and its underlying tools are actually very compute-intensive. These laptops were the best hard disk / processor / core combination I could find for the money. They are quite fast machines, but you'll still find yourself waiting for things, especially when the projects get more elaborate later in the course. You're probably best off leaving the 'Design Runs' tab open for now.
-
-Each of the panes has a small icon in the top right hand corner to the left of the cross icon that hides the pane, which looks like a rectangle with an arrow in it. If you click this, it pulls the pane out into a separate window that you can make very large. Try this with one of them. If you want this window to go back into the Vivado project window, then next to the `X', the icon in this window now looks like a right angle with an arrow pointing southwest away from it. Click this and the window turns back into a pane. The next icon along in each pane is an empty rectangle. If you click this, that pane expands to fill a much bigger space, obscuring the other panes, but not the Flow Navigator. This is another way to concentrate on what is in one of the panes at the expense of the others. To reverse this action, click on the 'double square' icon that appears in the same place as the single square when you maximise the pane in this way. This will restore the pane you maximised to its previous size. There is also an `\_` icon which turns any pane into a tall thin rectangle at the edge, which you can retrieve by clicking on that rectangle. Try that too. Finally, each pane contains a '?' icon, which expands to some help on what that pane is for. In previous versions of the software this wasn't actually any use at all. However, it has improved, so do have a read of some of this help text.
-
-All in all, I recommend that you spend some time exploring this SDK and how it is organised. Because you are all working remotely, if something wierd happens in the GUI, it will be far, far easier if you can make things right for yourself and not have to ask us to do it for you.
-
-\subsection{Which hardware description language ?}
-\label{sec:which_hdl}
-
-There are two hardware description languages supported in Vivado - VHDL and Verilog. Verilog is probably used more extensively in professional engineering, but I think VHDL is a better language for first time hardware developers, because it makes very explicit certain concepts that are fundamental to the architecture of computers, particularly registers, which we will discuss next week. \texttt{Verilog} tries to look more like an ordinary high-level programming language like C, but I think that for a student this is actually counter-productive. So, we will use VHDL. If you look in your Project Summary window, however, you'll see that it says, on the left, amongst many other things, that the `Target language' is Verilog. This strange choice of words means - `I am expecting you to code in Verilog here'. We need to fix this or there's going to be trouble. So, click on the blue 'Edit' in this pane, click on the arrow next to Verilog in the window that appears, and select VHDL instead, followed by OK. Now you are set up to compile VHDL code in Vivado.
-
-As an aside, after I started learning about VHDL for myself about a decade ago, I realised that it reminded me of a work experience placement I had when I was at school, at a company called Lucas Aerospace. The engineers there sent me off to write code for a PAL, which stands for programmable array of logic, in a language called ABEL. I ended up concluding that the PAL the engineer had selected didn't have enough gates on it to implement the functionality that the engineer wanted, so it wasn't a roaring success. Well, it turns out that a few years later Xilinx bought ABEL, and used it as the precursor to developing VHDL. So, without realising it, I have been programming in hardware description languages since I was fifteen! And, it turns out that ABEL is still in use, in some quarters, 35 years later. All that happened is the devices got bigger - PALS became CPLDs (complex programmable logic devices) which then got even larger and became FPGAs, and now we have SoCs, which are systems-on-a-chip. What's next? Maybe UoS, which instead of University of Sheffield could be Universe-on-Silicon ?
-
-\subsection{A first look at the constraint file}
-\label{sec:constraint_file}
-
-In the `Sources' pane, there is a folder icon with Constraints (1) written next to it. Click on the `$>$' next to that folder. The folder hierachy should expand and the file Basys-3-Master.xdc that you incorporated as a constraint file should appear. Double click on this file. It opens in the largest pane (which I'll just call the main pane from now on) as a new tab. There should now be two tabs in the main Pane, the constraint file and the `Project Summary' tab that was there before. Use the mouse to toggle between views of the two tabs. Go back to the constraints tab. Scroll up and down inside the file and take a look at its contents.
-
-First, note that every single entry in this file, with the exception of a couple at the end, starts with the `\#' character. This is the comment character in constraint files, so before we start doing things every line in this file is commented out. However, if you look down this file whilst also looking at the board you'll begin to notice a correspondence between the constraint file entries and the hardware. Here are some observations I would make.
-
-\begin{itemize}
-    \item The file entries are divided into blocks with space lines between the blocks.
-    \item The first block below the four comment lines at the top is to do with a Clock signal. We won't worry about clocks this lab.
-    \item After this there is a block entitled Switches. The lines in this block are in pairs. The first line of each pair contains a letter-number combination. In the first pair it is V17, in the second it is V16, etc.
-    \item There are 16 of these pairs in the switches block.
-    \item There are 16 switches on the board. If you look at the board, can you find the letters V17, V16, and the other similar pairs printed on the board in the vicinity of the switches?
-    \item Moving past the switches block, the next block says LEDs. This block too has pairs of lines, and there are 16 pairs in all.
-    \item Like the switches, the LED lines are associated with alphanumeric codes, like U16 and E19. Look at the board and locate the LEDs, close to the switches, that have these alphanumeric codes next to them.
-\end{itemize}
-
-We're actually only going to use the LEDs and switches today, so you don't need to worry about the remainder of the constraint file. However, if you want to take a quick look, the remaining blocks also correspond to physical devices connected to the FPGA. For example, the 3 blocks below the title 7 segment display, with 7 pairs of lines then a space then a pair of lines on its own, then four more pairs of lines, are all related to the four digit alphanumeric LED display on the board. The five pairs labelled Buttons correspond to the cluster of five pushbuttons - notice the names of the ports are btnC (central), btnU (up), btnL (left) ...etc, corresponding to the physical arrangement of the buttons on the board. The four groups labelled Pmod Header JA, JB, JC, and JXADC have to do with the four 12-pin expansion connectors, or PMOD connectors, on the two short sides of the board. The section labelled VGA Connector corresponds to the pins of the micro-D connector on the back side, which is designed to control an analog RGB monitor. The remaining blocks are associated with an RS232 serial interface that can be connected to the micro-USB connector next to the on switch, the full sized USB port in the top right corner, and some SPI flash memory connected to the FPGA.
-
-\subsection{Modifying the constraint file}
-\label{sec:constraints}
-
-Remember from the first lecture (see Chapter \ref{sec:chapter1_logic_integers}) when I discussed buses? In this constraint file, the LEDs and switches are each configured as 16 bit wide buses. You have a bank of 16 switches and a bank of 16 LEDs. Each LED and each switch is wired to a different physical pin on the FPGA hardware. The FPGAs have a grid of pins that cover the whole back side of the chip, except for a square in the centre that for this chip has no pins. The pins are arranged in a square grid. These alphanumeric codes are literally the grid references of the pins that are connected to the devices in question. After these alphanumeric codes are square brackets containing syntax like `get ports \{sw[0]\}'. A port is VHDL syntax for the name of an input and output in the hardware description language. Where an input or an output is part of a bus, the square brackets specify which bit this port is. So, in the case of this port, it's the least significant bit, bit 0, of the 16 bit bus connected to the switches. Looking down the rest of the switches, you can see that each pair of lines refers to a different bit in the bus, from the LSB at the top to the MSB at the bottom. The second line in each pair specifies what type of voltage standard the hardware is - in this case LVCMOS33 means low voltage CMOS 3.3V. These lines are used when Vivado is doing timing simulations on the signals propagating across the FPGA. 
-
-You are going to need to uncomment all the lines in the switch and LED blocks. To do this, use the left mouse button to highlight the entire block, or as much of it as you can at once. The lines you highlight will turn blue. At the top of the Basys-3-Master.xdc tab, there are 11 small icons. The third from the right is `//'. If you click on this it will uncomment the highlighted lines. They should change from grey to black and blue, and the comment characters at the beginning of the lines should disappear. Carry on with this until you have uncommented all the lines in the switch and LED blocks, except the first line in each block, where the double comment character is a way of telling you that this is just a title.
-
-After uncommenting all the switch and LED blocks, you'll need to save changes. Notice that after you started altering the constraint file, an asterisk (star) appeared next to the file name at the top of the tab. This means the file has unsaved changes. To save these changes, hold down the Ctrl key and press s (ctrl-s). The asterisk should disappear when your changes are saved. Your constraint file is now ready to use.
-
-\subsection{Creating a source file}
-\label{sec:sourcefile}
-
-Our next job is to create our VHDL source file. To do this look in the `Flow Navigator' sidebar and click `Add Sources'. A window appears, with three options, the middle of which is 'Add or create design sources'. Click the button next to this option to select and then click Next. The ensuing window looks a lot like the one where you added the constraint file earlier. In fact, it's the same window, only this time, we don't want to add an existing file, we want to create one from scratch. To do this, click the plus sign towards the top left corner and select `Create File'. A sub-window appears. The file type should be VHDL, but you need to give the file a name. Click in the box next to File name. It can be anything you want as long as it ends in .vhd, only don't include any spaces in the name. How about `switch\_to\_led.vhd'. That is what I called mine, anyway. Hit OK. This should return you to the `Add Sources' window, and your file should be visible as shown in Figure \ref{fig:add_sources}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/add_sources.png}
-    \caption{The `Add Sources' window after you have named your source file.}
-    \label{fig:add_sources}
-\end{figure}
-
-You can now click Finish, only it's not over yet. A new window appears called 'Define Module'. You don't actually have to use this, but it is quite useful to do so as it gets your source code off to a good start. In this window there is a table called I/O Port definitions. In our module, there will be an input port bus for the signals from the 16 switches and an output port bus for the signals going to the 16 LEDs. So, in the top left cell just under port name, click in the box and write sw, which if you recall was the name of the 16 ports for the switches in the constraint file. Check the box to confirm that this input is a Bus. Next click on the zero in the MSB column. The zero is now blue and you can just enter 15, or click the up arrow until the zero increments to 15. As long as it ends up as 15, that's OK. 
-
-Next click in the next row down directly below where you wrote sw. The row fills with entries. Click again and then you can enter led as the port name. Change the `in' to `out' on this row as the switches are outputs, check the Bus box again, and change the MSB to 15. Click OK to finish. In the Sources pane, you should now be able to see your file under `Design Sources' with whatever filename you gave it. Double click on the file name and your file will open up in the main pane. Now you have three tabs in the main pane - Project Summary, Basys-3-Master.xdc, and your VHDL source file.
-
-\subsection{Modifying the source file}
-\label{sec:source_file_mods}
-
-The first thing you'll notice about the source file when you open it is that most of the lines begin with two dashes in a row. This is the comment character in VHDL. It is a bit annoying that the VHDL comment character is different from that in the constraint file. It's because the constraint file syntax is actually Tcl syntax, and I believe the double dash comment character originates in the ABEL language I used when I was 15! The file lines are numbered, and everything up to and including line 21 is basically superfluous. I suggest that you delete these lines. Line 22 is the first important one, where it says `library IEEE;'. You can also remove the remaining comments after `use IEEE.STD\_STD\_LOGIC\_1164.ALL' and 'entity switch\_to\_led is'. The code should now look like this.
-
-\newpage
-
-\begin{minted}{vhdl}
-----------------------------------------------------
---- WARNING - THIS CODE WILL NOT BUILD UNTIL -------
---- YOU MAKE THE ADDITION GIVEN ON THE NEXT PAGE ---
-----------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-
-entity switch_to_led is
-    Port ( sw : in STD_LOGIC_VECTOR (15 downto 0);
-           led : out STD_LOGIC_VECTOR (15 downto 0));
-end switch_to_led;
-
-architecture Behavioral of switch_to_led is
-
-begin
-
-
-end Behavioral;
+\begin{minted}{tcl}
+# Clock signal
+set_property PACKAGE_PIN W5 [get_ports clk]
+	set_property IOSTANDARD LVCMOS33 [get_ports clk]
+	create_clock -add -name sys_clk_pin -period 10.00 \
+	-waveform {0 5} [get_ports clk]
 \end{minted}
 
-Here is an explanation of the code. The first couple of lines declare that you will be using logical data types. The four lines starting with entity switch\_to\_led is and ending with end switch\_to\_led describe the input and output ports to your logic circuit. In this case, we have a 16 element input bus whose port name is sw, and a 16 element output bus whose port name is led. Notice that sw and led match the port names in the constraint file. It is very important that this is so, otherwise the code will not compile correctly. Notice that the ports are defined between a pair of round brackets, and the two port declarations are separated by a semicolon. Notice also that the last port declaration has a semicolon OUTSIDE the round bracket that encloses the ports, but no semicolon inside this bracket. All this syntax is correct, and the ports are already correctly defined because we used the GUI window during the create source sequence to specify our ports ahead of time.
+To continue with the project you will need to use the `Add Sources' menu item in the `Flow Navigator' to add a VHDL source. Follow the guide from last week if you have forgotten what to do. When given the opportunity to specify ports, make sure there is an `in' port called clk to match the constraint file and an out port called led, which is a 16 bit wide bus. Note that the led elements will need un-commenting in the constraint file as well.
 
-VHDL differs from python in that it does not use whitespace characters like spaces, tabs or newlines to convey information. A command is terminated by a semicolon. You can have as much whitespace as you like in a single statement, so long as use a semicolon to tell the compiler when that statement is finished. Personally I think this is profoundly sensible. But, it does mean you have to be careful to remember the semicolons.
-
-What is still missing is what connects the input ports to the output ports. All we want to do to start with is connect each of the 16 switches to the corresponding LED. To do that we add one line as follows:
-
-\newpage
+When your VHDL file appears, double click on it and take a look. The comments above the first library statement can be deleted - they are boilerplate intended for Engineers who need to record who wrote the code, the history of modifications, etc. Important in a large development team but not when you are writing your first small programs. This code is going to be using numeric data types, so you need to uncomment the IEEE numeric libraries that are by default commented out in the template. The first three lines of your code should look like this.
 
 \begin{minted}{vhdl}
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+\end{minted}
 
-entity switch_to_led is
-    Port ( sw : in STD_LOGIC_VECTOR (15 downto 0);
+This has the effect of allowing logical and numeric data types within your program. Next follows the entity statement, where you specify the input and output ports for your part.
+
+\begin{minted}{vhdl}
+entity thirty_two_bit_counter is
+    Port ( clk : in STD_LOGIC;
            led : out STD_LOGIC_VECTOR (15 downto 0));
-end switch_to_led;
+end thirty_two_bit_counter;
+\end{minted}
 
-architecture Behavioral of switch_to_led is
+\section{Nodes and signals}
+\label{sec:nodesandsignals}
 
+Next comes the first portion of the architecture statement, where you describe the wiring inside the part. We immediately encounter some examples of nodes, which in VHDL are called signals.
+
+\begin{minted}{vhdl}
+architecture Behavioral of thirty_two_bit_counter is
+  signal counter_d, counter_q : UNSIGNED (31 downto 0);
+  signal counter_in_logic: STD_LOGIC_VECTOR (31 downto 0);
 begin
-    led <= sw;
-end Behavioral;
+-- rest of architecture specification code here
 \end{minted}
 
-The architecture part of the code is where you define how your circuit is connected together between the ports. In this case, it is very simple. We just connect the 16 bit input bus from the switches to the 16 bit output bus going to the LEDs. The $<=$ operator is the 'assignment' operator that makes the connection. It is formed from a less than sign followed by an equals sign. Do not get confused and write just $=$ in this context. That means something else in VHDL. Think of $<=$ as wires connecting two objects. Use ctrl-s to save your file.
+Recall that the purposes of nodes is to supply points to which the ports of two or more gates, flip flops or other devices inside your circuit can attach. In this case, the two nodes on the upper line are for connecting to the $D$ and $Q$ ports of a flip-flop, and to connect to whatever operations are going to occur between $Q$ and $D$. These are of type UNSIGNED, which is the VHDL type for an unsigned integer. Our binary counter is going to count from zero up to $2^{32}-1$, then reset to zero automatically, because overflows are ignored. The other node, called \texttt{counter\_in\_logic} is needed because we need to cast the value of the counter from \texttt{UNSIGNED} to \texttt{STD\_LOGIC\_VECTOR} so that we can extract a subset of the bits and display them on the LEDs. There are two reasons why this is necessary. First, VHDL is a strongly typed language. There is no operator that can extract a subset of the bits of an integer. Second, recall that VHDL insists that the inputs and outputs of a device are represented by logical data types. So, even if our board had 32 LEDs and we could represent all the bits, the code would not compile if we were to try and wire the counter directly to the LED output.
 
-Vivado has an automatic syntax checker. If you have made the file correctly, the file name should remain in bold in the Design Sources window. If however you have made a syntax mistake, this will be indicated in your `Sources' pane as shown in Figure \ref{fig:syntaxerror}.
+\section{Processes}
+\label{sec:processes}
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/syntax_error.png}
-    \caption{Appearance of the `Sources' pane when Vivado has found a syntax error in a VHDL source file.}
-    \label{fig:syntaxerror}
-\end{figure}
+The next part of the code is written to induce VHDL to connect some of the flip-flops on the board as registers. In order to do this, there must be an if statement, which you haven't met in VHDL, and this if statement must be inside a process. Since the outer of these statements is a process, let us start by explaining what processes are for.
 
-Even if you didn't make any errors, try inserting a rogue character in your VHDL file, then using ctrl-s to save, so that you trigger the error checker. If you click on the `$>$' next to Syntax Error Files, your file is there, and it is not highlighted. Now fix the error and ctrl-s again, and your file is restored to Design Sources and is listed in boldface. Vivado's editor also spots syntax errors in-line by underlining them in red. If you see this kind of red underlining in your file, it probably means you should look for a mistake.
+The natural tendency in VHDL is for statements to correspond directly to wires that are connected in a circuit. Outside a process you cannot write two logically inconsistent statements. So, for example, if a node `myvar' is of data type \texttt{STD\_LOGIC}, then this code would not be allowed outside a process.
 
-\subsection{Synthesising your design}
-\label{sec:synthesis}
-
-You are now ready to run synthesis on your design. In this step, Vivado and its underlying compiler determine the optimal set of logical entities available on the chip to implement your circuit. Of course, this design will use very few resources, but it's our first one, so no surprises there. Click `Run Synthesis' in the `Flow Navigator' bar on the left. When you do this, a small 'Launch Runs' window appears. This is shown in Figure \ref{fig:launch_runs}. 
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.4\textwidth]{figures/launch_runs.png}
-    \caption{The `Launch Runs' window}
-    \label{fig:launch_runs}
-\end{figure}
-
-This window isn't so important for this simple job, but for larger jobs you can save significant time here. Vivado is capable of operating multiple CPU cores at once. In this window you can select a number of jobs up to 4. This means that you can use up to the 4 cores that your laptops i7 pentium processor has. Where you are building multiple modules at once, this will literally divide your build time by four. So, it's well worth being aware of this functionality. In this case just hit OK.
-
-If all goes well, you will see a small `Synthesis Completed' window like the one in Figure \ref{fig:synthesis_completed}. 
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.4\textwidth]{figures/synthesis_completed.png}
-    \caption{The `Synthesis Completed' window}
-    \label{fig:synthesis_completed}
-\end{figure}
-
-You next want to launch the `Run Implementation' step. This step figures out how to route the wires between the input and output pins on the chip and the required logical elements. Just select OK to start this process. Again, the default of 2 parallel jobs is OK for this build. You'll have to wait a short while for this to complete. If everything goes well, you should see another similar window, 'Implementation Completed'. This time you want to skip opening the implemented design, so just select 'Generate Bitstream', and then click OK (or hit return). Once the bitstream has built, a 'Bitsream Generation Completed' window appears. In this window, you just hit cancel, because we need to get the board hooked up before we launch on the hardware.
-
-\subsection{Launching on hardware}
-\label{sec:launchingonhardware}
-
-We are now ready to launch on the hardware. The first step is to connect the BASYS3 board to the computer. Before we do this, however, there are a few checks. On this board, in the top left and top right corners there are some blue 'jumpers' connected across pairs of pins. The jumper in the top left (with the switches at the bottom) should be connected between the middle of the three pins and the one towards the inside of the board, with the letters `USB' written on the board next to it. This jumper sets the board to be powered from your laptop through the USB cable. The other jumper position instead draws the board power from the two pins below the power switch labelled EXT and GND. The power switch itself should be in the `OFF' position, with the switch slid towards the inside of the board. 
-
-The other jumper next to the big USB port should be set in the middle position it can occupy, connecting the middle two of the four pins. The board can be programmed in three ways, and the way we will be using today is to program the board directly from an external device by way of a so-called JTAG chain. A JTAG chain is a standard protocol for programming multiple chips through a serial interface. The other two programming methods are to program the board from an on-board flash memory chip (QSPI) and from a USB stick plugged in to the large USB port (USB). 
-
-The computer connects to the board using the usb to microusb cable that I supplied you with. Ensure the board is not on a metallic surface that could short out the pins. Note that the micro USB plug connects to the BASYS3 with the flat and larger side of the D connector UPWARDS. Do not force it in because these connectors are not all that robust! It should go in quite easily. Connect the board up to any USB port on the laptop and turn it on at the switch. A red light in the top left hand corner of the board should light up, and an orange light next to the large USB port should come on for a second or so, and then go out.
-
-Back in Vivado, at the very bottom of the `Flow Navigator', click on the arrow next to `Open Hardware Manager'. Click on `Open Target', and select `Open New Target...'. A window will appear called `Open New Hardware Target'. Click next. On the next screen, you want to accept the default that your target is connected to your local machine, so click next again. The window should now show your Digilent device as a hardware target. This is shown in Figure \ref{fig:hardware_target}. Click Next and then Finish.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.7\textwidth]{figures/hardware_target.png}
-    \caption{The hardware window with the digilent board and device visible.}
-    \label{fig:hardware_target}
-\end{figure}
-
-\subsection{Programming the device}
-\label{sec:programming}
-
-You should now be able to program the board. At the bottom of the `Flow Navigator' sidebar, click on `Program Device' and select the xc7a35. In the window that appears, you can see the bitstream file, switch\_to\_led.bit, which is used to program the chip. Click program, and after a few moments, the green LED in the top right hand corner of the board indicates that programming is `done'. Operate all the switches and verify that the corresponding LED lights up when any switch is thrown. Make a note of any that do not work.
-
-\subsection{The hardware manager}
-\label{sec:hardware_manager}
-
-Once you have the hardware device programmed, your Vivado window will have changed to a state where the `hardware manager' is running and visible. The appearance of the Vivado window in this state is shown in Figure \ref{fig:hardware_manager}. 
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\textwidth]{figures/hardware_manager.png}
-    \caption{The Vivado window when the hardware manager is open}
-    \label{fig:hardware_manager}
-\end{figure}
-
-In this state, the chip is being monitored in real time by Vivado. The Artix7 has an on board temperature sensor and analog-to-digital converter, so it can measure its own temperature. This is so that commercial applications can put in safeguards for overheating - which is why your mobile phone will probably switch itself off if you leave it on a sunny windowsill in the summer. If you double click on XADC in the Hardware pane, then click `OK' in the`New Dashboard' window that appears, this will bring up an updating strip chart of the measured temperature of the FPGA in centigrade. You can put your finger on the chip and after a while you will start to see it warm up. 
-
-If you turn off or disconnect the board with the hardware manager on, a window will come up informing you that it has lost the connection to the device. This can also happen if your USB cable isn't very well connected at either end, or when you pick the board up with the cable hanging off the connector. It's fine just to click OK if this happens. If you wish to reconnect to the board, just turn it back on, plug the cable back in, or fix whatever the hardware issue was, then at the top of the hardware manager board you can click on `Open target', then select `Auto Connect'. It should re-connect to the board when you do this. You will then have to re-program the board using the instructions in Section \ref{sec:programming}. 
-
-Once you are done with studying your hardware, you may want to start over with a new project, or make modifications to the one you have open. Before doing this, click the `X' in the hardware manager pane to close it, and then confirm that you want to close it with `OK'. This will take you back to the more regular appearance of the Vivado window so you can proceed with further modifications, or close the project and create a new one.
-
-\subsection{Other project ideas}
-\label{sec:other_ideas}
-
-Here are some other projects you might try. Some of them are very modest modifications to the project already described. Others are more substantial new work. Remember that whenever you modify the constraints file or any of the VHDL code in your projects, you must use ctrl-s to save the changes to your files, at which point the asterisks next to their names should disappear, then redo the process of synthesis, implementation and bitstream generation. Note that you can take a short-cut by clicking on `Generate Bitstream', which will cause it to synthesise and implement as well, after it prompts you to confirm that it's okay for that to happen. This saves you effort, but it also means that if something goes wrong it may be less obvious to you at which stage it failed.
-
-One additional piece of advice. In my experience more than half of student mistakes have to do with syntax errors in the constraint file, usually with the various square brackets and curly braces. Double-check that you haven't left any stray braces lying around as they are hard to spot in the generally cluttered syntax of these files. If your constraint file is faulty, this may cause the build to fail at the last stage when Vivado is generating the bitstream. This is a clue that can help you go back and give the constraint file extra scrutiny.
-
-For the projects that require quite major changes to the VHDL code and constraints, you might be better off starting again with a new project. To do this you can either close the project you are currently working on using \texttt{File->Close project} from the file menu, or much as you can do in WORD or EXCEL, you can instead use \texttt{File->Project->Save As...}. The latter will create a copy of your current project, allowing you to select the project location, which should certainly be \texttt{/home/physics/vivado\_projects}, and a new project name, which should suit whatever the modified project is going to do. This way your current functioning project remains intact, but you avoid having to set up a new project from scratch, since you can now go on to modify the copy without losing the original.
-
-After all that, here are some ideas for other projects you could usefully work on.
-
-\begin{enumerate}
-    \item Change to 
 \begin{minted}{vhdl}
-    led <= not(sw);
+myvar <= '1';
+myvar <= '0';
 \end{minted}
-    so that the LEDs are off when the switches are on.
-    \item Make the bottom 8 switches control the top 8 LEDs and vice versa. To do this, use the downto mechanism to refer to a subset of the lines of a bus, so
+
+This code literally instructs VHDL to connect the same node to logic level $1$, which is at least $\rm 2.0\,V$, and to logic level $0$, which is at most $\rm 0.8\,V$. This would cause a short circuit, and VHDL will not allow it. The purpose of processes is to permit data structures where there is a necessity for one instruction to supersede another one. In a process, if the same node is wired up several different ways in successive lines, then the last line takes precedence. So for example, this code is allowed
+
 \begin{minted}{vhdl}
-    led(7 downto 0) <= sw(15 downto 8);
-    led(15 downto 8) <= sw(7 downto 0);
+process begin
+  myvar <= '0';
+  myvar <= '1';
+end process;
 \end{minted}
-    \item Change the constraint file so that only two of the switches and one LED are enabled. Do this by commenting out all the others. But, also, name the switches and the LED as separate discrete ports instead of elements of a bus. So, for example, where the constraint file currently says
-\begin{minted}{tcl}
-set_property PACKAGE_PIN W16 [get_ports {sw[2]}]
-	set_property IOSTANDARD LVCMOS33 [get_ports {sw[2]}]
-\end{minted}
-    you should modify each of the two switches left so it is a discrete one-element bit rather than a bus element, as follows
-\begin{minted}{tcl}
-set_property PACKAGE_PIN W16 [get_ports {swone}]
-	set_property IOSTANDARD LVCMOS33 [get_ports {swone}]
-\end{minted}
-and similarly for the two lines corresponding to the other switch. In your VHDL code, you need to declare the switch as a separate port, so if the new names of your two switches are swone and swtwo and your single LED is just named led, then your VHDL code port section becomes
+
+The result would be that \texttt{myvar} would be wired to logic $1$, and not to logic $0$. What is the point of this construction? For a start, it is useful if you are going to use a conditional assignment, such as an if statement. For example, consider the following code
+
 \begin{minted}{vhdl}
-entity switch_to_led is
-    Port ( swone : in STD_LOGIC;
-           swtwo : in STD_LOGIC;
-           led : out STD_LOGIC);
-end switch_to_led;
+process(a) begin
+  if (a='1') then
+    myvar <= '0'; 
+  else
+    myvar <= '1';
+  end if;
+end process;
 \end{minted}
-Notice that once the inputs and outputs are no longer buses but single bits, the data type changes from STD\_LOGIC\_VECTOR to STD\_LOGIC. Now that you have simpler discrete inputs and outputs, try the logic gates, so that in the architecture portion of your code you could write
+
+If the node or port \texttt{a} is in logical state $1$, then \texttt{myvar} is wired to $0$, otherwise \texttt{myvar} is wired to $1$. The outcome depends on the state of \texttt{a}, and therefore the node or port \texttt{a} is included in the dependency list. The dependency list is a comma separated list of nodes or ports (I could say variables, but I'm trying to help you to avoid confusing hardware description languages and high level languages like PYTHON), in round brackets next to the process statement. Any nodes or ports whose value affects the outcome of the statements in the process is included in this list. You can see why conditionals like if...then...else are always wrapped in a process statement in VHDL. Their effect is to set the value of a node or port different ways depending on some other condition. We will meet other conditional statements later. 
+
+Note also that, bearing in mind the earlier point about the last statement taking precedence, the following code is equivalent to the conditional example above
+
 \begin{minted}{vhdl}
-architecture Behavioral of switch_to_led is
-begin
-    led <= swone xor swtwo;
-end Behavioral;
+process(a) begin
+  myvar <= '1';
+  if (a='1') then
+    myvar <= '0'; 
+  end if;
+end process;
 \end{minted}
-Check that the logic gates have the correct behaviour.
-\item 
-Work out a simple set of logic gates that implement a one bit adder with carry. The functionality should be, when both the inputs are zero, the output is zero and the carry is zero. When one of the inputs is one and the other is zero, the output is one but the carry is zero. When both the inputs are one, the output is zero and the carry is one. Both the output and the carry are displayed on LEDs. Design your logic to implement this simple adder, and build and test your design on your board.
-\item 
-Implement a one bit adder, but this time it needs to have three inputs, one for each of the two inputs to the one bit adder you already designed, and a third input to accept any bits carried over from another column. You'll need to figure out a truth table for the two outputs, the out for this bit and the carry out for the next one, from the three inputs, then enable three switches and two leds to test whether your logic implements the truth table, reprogram the board and test your hardware.
-\end{enumerate}
+
+Here the first assignment of \texttt{myvar} as $1$ can be though of as a default. However, if it turns out that \texttt{a} is $1$, then the later assignment of \texttt{myvar} to $0$ supersedes the default. I think this way of using if...then conditionals is good practice, because if you set a default assignment for a node or port inside the process before the conditional, then the node or port is assigned to some value, whatever happens with the conditional. In VHDL, where it is crucial to avoid leaving hanging wires connected to nothing, the existence of a default for all nodes or ports is an important protection against hard-to-diagnose faults.
+
+Now, consider the process and conditional statement that follows next in the code for the 32 bit counter.
+
+\begin{minted}{vhdl}
+  process(clk, counter_d) begin
+    if(clk'event and clk='1') then
+      counter_q <= counter_d;
+    end if;
+  end process;
+\end{minted}
+
+This is a special combination of a process and a conditional that is used specifically to set up memory registers. First, note that the outcome of the code depends on \texttt{clk} because it is used in the if...then statement. Also, the assignment of \texttt{counter\_q} depends on the state of \texttt{counter\_d}. Hence both \texttt{clk} are in the dependency list. Second, note the special purpose syntax inside the if statement. The first part, \texttt{clk'event} is a special instruction to look for edges in the \texttt{clk} port, times when the \texttt{clk} port is transitioning between states. The second part of the conditional checks that the value of \texttt{clk} after the transition is detected is $1$. The combination of these two conditionals is enough to induce VHDL to wire \texttt{clk} to the gate port of a flip-flop, since this is the only circuit element on the chip that can detect edges.
+
+Since the hardware device being used is a flip-flop, we know that the only thing it can do is copy the value of its input, or $D$ port, to its output, or register, or $Q$ port, so the contents of this if...then statement have the effect of ensuring that 32 single bit flip-flops will have their input $D$ ports connected to the 32 bits of \texttt{counter\_d}, and their output $Q$ ports connected to the 32 bits of \texttt{counter\_q}. When rising clock edges appear, a momentary snapshot will be taken of the state of \texttt{counter\_d}, and copied to \texttt{counter\_q}, where it will remain persistent until the next rising clock edge.
+
+Any number of register updating statements can be included in this special purpose process and conditional statement. But, no other operations should be put in this process! This is because the flip flop copy operation can happen almost instantaneously on the detection of an edge in the gate port, but all other operations, such as logical or arithmetical operations, take too long to be implemented on the clock edge like this. If you have other operations to perform, put them in a separate process.
+
+Another good rule of thumb is that only inside this special process should you use the \texttt{d} port of a flip flop as the input on the right of the $<=$ operator, and the \texttt{q} port of a flip flop as the output on the left of the $<=$ operator. Outside this special process, you should always be setting the \texttt{d}, or input port, based on the value of the \texttt{q}, or output port. This means that all the time consuming operations have $\rm 10\,ns$ for their outputs to settle; the only operations that need to happen much faster are the copies inside the flip-flops, and these are fast by design.
+
+\section{Counting}
+\label{sec:counting}
+
+To actually count upwards, we will use the $+$ operator, which implements binary addition on all the integer data types we will use in the course. Note that $+$ just adds binary sequences. The input and the output should have the same number of bits, and any overflows will be discarded. The code to implement the counting is very simple
+
+\begin{minted}{vhdl}
+counter_d <= counter_q + 1; 
+\end{minted}
+
+Since \texttt{counter\_q} is the currently stored value of the counter, and will remain static for $\rm 10\,ns$ between rising clock edges, all this statement does is ensure that the appropriate logic is in place between the node \texttt{counter\_q} at its input and the node \texttt{counter\_d} at its output such that \texttt{counter\_d} is one greater than \texttt{counter\_q}. At the next rising edge in \texttt{clk}, \texttt{counter\_d} is copied to \texttt{counter\_q} incrementing its value by $1$ and the cycle continues.
+
+\section{Casting and selecting a subset of bits}
+\label{sec:castandsubset}
+
+The next two lines introduce us to casting and a further operation on logical data types, the selection of a subset of bits. 
+
+\begin{minted}{vhdl}
+  counter_in_logic <= std_logic_vector(counter_q);
+  led <= counter_in_logic(31 downto 16);
+\end{minted}
+
+Note that since these lines are outside any process or conditional construction, they represent permanent wires between nodes and ports. In the upper line, the node \texttt{counter\_in\_logic} is connected to the output of a cast operation, with the currently stored value of the counter at the input. The cast operation is necessary because VHDL is a strongly typed language. You need to specify exactly what data type each node or port has. We want a node of the \texttt{STD\_LOGIC\_VECTOR} type with the same bus width as the 
+counter, so we employ the \texttt{std\_logic\_vector()} operator, which casts a node or port into the \texttt{std\_logic\_vector} data type. In the lower line, we use the \texttt{31 downto 16} construct to select a subset of the bits in \texttt{counter\_in\_logic} to assign to the 16 \texttt{led} ports.
+
+Lastly we must end the process, with 
+\begin{minted}{vhdl}
+  end Behavioural;
+\end{minted}
+
+Type in the code carefully, making sure you understand the concepts as you do so, as this code contains several new concepts. Ask myself or Mitch if you are unsure about anything. Then, run synthesis, implementation, and bitstream build in turn. At each stage, there may be errors or critical warnings - if the build fails you can check for these in the Messages tab of the lower pane. Once you have built your bitstream, follow the same procedure as last week to attach your board, launch the hardware server in a terminal window, open the hardware manager, connect it, program the board, and see if the lights count in binary.
+
+\section{Gating your counter with a pushbutton}
+\label{sec:buttons}
+
+Let us next make a counter that only counts up when you have a pushbutton pressed, and stores the previously attained value when the counter is released, starting to count from that same value when the pushbutton is pressed again.
+
+Close the hardware manager then use the \texttt{File->Project->Save As} option to save the project as a new name,
+say \texttt{gated\_counter}. Make sure the directory of the new  \texttt{gated\_counter} project is in a subdirectory of \texttt{vivado\_projects}. There is no need to include run results in the new project, although it does no harm if you do.
+
+Open up the constraint file, and scroll down until you find the lines referring to Buttons. There should be five sets of two line entries, each referring to one of the cluster of five pushbuttons arranged as 
+central, up, left, right, down. Uncomment the two lines referring to the central button, then save the modified constraint file.
+
+\section{Conditional assignments}
+\label{sec:conditionalassignments}
+
+We have already discussed if...then statements and stated that these have to be inside process statements. It turns out that there is one type of conditional which operates slightly differently, and as a consequence should never be inside a process. These are called
+conditional assignments. Here is an example of a conditional assignment. In this case c is a 2 bit \texttt{std\_logic\_vector} and $a$ and $b$ are 32 bit signed integers.
+
+\begin{minted}{vhdl}
+  a <= b+1 when c="01" else
+       b+10 when c="10" else
+       b+100 when c="11" else
+       b;
+\end{minted}
+
+Note the defining feature of conditional assignments, that the conditional exhausts all the possibilities for the controlling logic. In this case, a 2 bit parallel bus can only take the four values $B00$, $B01$, $B10$ and $B11$. The code specifies an outcome in each of those eventualities. In fact, this code is somewhat overengineered since the last else means that there is a default, which covers all eventualities other than those above. It is good practice always to include a default in conditional assignments.
+
+Using this new construct, you should be able to modify the line
+\begin{minted}{vhdl}
+  counter_d <= counter_q + 1; 
+\end{minted}
+so that the effect is the one desired in this project - that when the pushbutton is pressed (this will make the corresponding port logic $1$), the counter continues to count up, but when the button is released, the count will stop and retain its value. Try and get this working without more detailed instructions.
+
+\section{Counting button pushes}
+\label{sec:pushbuttoncounter}
+
+Now we are ready to try something significantly more challenging. Consider the humble pushbutton. Even if you press it for as short a time as you physically can, the duration of that press is going to be many thousands of $\rm 10\,ns$ clock cycles, as you can verify by watching the LEDs when you push the button as briefly as you can in the previous project. Given that, how do we build a code that increments a counter by exactly one every time a button is pressed?
+
+Let's take a first guess at how to handle this task. Let us build a detector for changes of button state from zero to 1. After all, you might think that when you press a button it may stay in state $1$ for a long time, but maybe it only transitions from $0$ to $1$ once. Couldn't we use this to achieve our goal?
+
+To try this idea, create a one bit register called \texttt{bstore}. This should have an input and an output node just like the counter register, and it should be implemented with a flip flop in just the same way. Connect the input node to the button. You can detect edges by comparing the current button state to the output node, which after all represents the button state last clock cycle. If the current button state is $1$ and the bstore output is $0$, this means that the button has just changed state from $0$ to $1$. If this is true, then increment the counter. Otherwise, leave the counter in its previous state.
+
+See if you can get this working, and see if it works as well as you wanted it to, or if there are problems. If there are problems, then try to work out what is causing those problems. Here are a couple of hints. The register copy from \texttt{d} to \texttt{q} for bstore can be in the same process and if...then statement as that for the counter. You can reduce the number of bits in the counter from 32 to 16 and put all of them on the LEDs. You will no longer need the \texttt{counter\_in\_logic} node as you can cast \texttt{counter\_q} directly to the \texttt{led} outputs. Another hit is that conditional assignments can have logical combinations of several conditions after the \texttt{when} keyword and before the \texttt{else}. Finally, don't forget to modify the dependency list for the register to include \texttt{bstore\_d}.
+
+\section{Bouncing buttons}
+\label{sec:bounce}
+
+If you play with your button-triggered counter for a while, you will probably find that, though most of the time it works fine, occasionally there will be one of two effects. The first effect you will sometimes see is that you will press the button once, but the count will increment by more than one unit. The second effect you will see sometimes is that there will be one or more counts at the moment you release the button. These problems are caused by the physical structure of the button itself. Figure \ref{fig:button} is a slightly exaggerated illustration of the problem.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/button.pdf}
+    \caption{The bounce effect in a pushbutton.}
+    \label{fig:button}
+\end{figure}
+
+The button is not mechanically perfect, and now and again, both at the pressing of the button, and the release, there are multiple state changes. This effect is called 'bounce' in engineering, and mechanisms to prevent it are called debouncing circuits. As our final project today, and the most challenging of them, we will think about how to make a debouncing circuit for our pushbutton.
+
+There are in fact several ways to do it, and the better and clearer ones require programming constructs we have not studied yet, such as state machines. However, with what we already have we can try and make a button debouncer.
+
+The first thing is to recognise that we are most of the way there. Our buttons appear to be of high enough quality, that the number of bounces is rarely more than one, and usually zero. A good question is, what makes multiple switches of state a bounce? The answer is that the multiple switches have to occur within a short time interval. What we want in a debouncer is a way of ignoring further changes of state that occur less than a certain short amount of time after an initial change of state is detected. As can be seen from Figure \ref{fig:button}, the same effect happens both on press and release, so this mechanism should be triggered both on the detection of a transition from $0$ to $1$ when the button is pressed, and on the detection of a transition from $1$ to $0$ when it is released. 
+
+One way to implement this is with a second counter. We have one counter that is now just counting button presses. This counter needs to carry on doing its job. We are going to need a second counter that counts driven by the clock, as it was before in the very first project. However, it only needs to start counting up when a change of button state is detected. Let's say this counter is zero initially and the button is unpressed. Now our current mechanism detects a change of button state from $0$ to $1$. This increments the counter. It is no longer at zero. Let's say the next value of the counter depends on its current value. If the counter is at zero and no change of button state has been detected, the counter stays at zero. If the counter is at zero and a change of button state has been detected, the counter increments. If the counter is anything other than zero, it increments anyway, no matter what the state of the button. Thus, the counter keeps on counting up. Once the counter reaches its maximum capacity, it naturally resets to zero, at which point we're back to the zero state. Crucially, the counter not being zero implies that we are within a time interval, settable by a judicious choice of the number of bits in the counting variable. Only when a change of button state from 0 to 1 is detected, and in addition the counter is at zero, do we increment the second counter that is counting how many times we have pressed the button.
+
+The last thing to consider is what happens when the button is released. The counter is at zero, having cycled round after the button was pressed. Now we detect that the button state is zero but it was 1 last time. We increment the counter to 1, and it's exactly the same as in the button press, any further button changes of state do not result in our button press counter being incremented. Long after the button state has settled back down to unpressed again, the counter again cycles around back to zero, and we are back where we started.
+
+See if you can implement all of this. It's a bit more challenging, but it just requires judicious use of conditional assignments and one additional counter. Note that the operators $>$ and $<$ for greater than and less than work with numeric data types in VHDL.
 
 \end{document}
