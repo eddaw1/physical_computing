@@ -166,4 +166,143 @@ Obviously try not to lose anything and tell me if you do, or if anything gets br
 
 One final thing about the laptops. If you want to dump the whole screen to a picture file, then at any time you can just press the PrtScr button which is on your keyboard two keys to the right of the space bar, and a `.png' format bitmap of the entire screen is written to the Pictures subfolder of your home directory. Try this, and then use the Files application to go to this directory, double clicking on the icon to view it. If you just want to print one window, make sure this window is selected, then hold down the Alt key and again press PrtScr (Alt-PrtScr), and a `.png' file just of the highlighted window is put in the same place. This could be useful if something isn't working right and you want to send myself or Mitch graphics that are useful in explaining your problem.
 
+\section{Logic Gates}
+\label{sec:logicgates}
+
+We start our physical computing course where all beginners courses on digital circuits begin, with logic gates.
+A logic gate is an abstract operation having a single digital output and one or more digital inputs. There are seven
+logic gates that you will see on schematics. The simplest of them is a NOT gate, or inverter, mentioned in the preface,
+whose output is $1$ when its single input is $0$, and $0$ when the input is $1$. The next simplest gates each have two inputs. The two input AND gate has output $1$ only when both its inputs are $1$, the two input OR gate has output $1$ when either or both of its inputs are $1$, and the two input XOR (exclusive or) gate has output $1$ when either one, but not both, of its inputs are $1$. That's four so far. The other three gates consist of the AND, OR and XOR gates with an inverter on the output, forming the NAND, NOR and XNOR gates. The six two-input gates generalise to more than two inputs. For example, a 3 input XOR gate has output $1$ when any one, but not more than one, of its inputs is $1$.
+
+An alternative to these written descriptions of functionality is to tabulate the outputs for each possible combination of inputs. Such tables are called truth tables. The truth tables for the four gates NOT, AND, OR and XOR are shown in Figure \ref{fig:logic_gates_figure}
+along with the symbols representing the gates. The figure caption tells you how to draw the other three gates NAND, NOR and XNOR. 
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.5\textwidth]{figures/logic_gates_figure.pdf}
+\caption{\label{fig:logic_gates_figure} Truth tables and symbols for four of the seven logic gates commonly encountered. The other three, NAND, NOR and XNOR are obtained by adding a not at the output of AND, OR and XOR, respectively. The symbols are the same as for AND, OR and XOR except for the addition of a small circle like that on the right side of the NOT gate. Sometimes you will also see a small circle on one of the input leads before the gate body. For example, if this circle before the body of the AND gate appears on the b input, it means `a and not b.'}
+\end{figure}
+
+\section{De Morgan's Laws}
+\label{sec:demorgan}
+
+It turns out that you can build AND gates out of OR gates and NOT gates, or OR gates out of AND gates and NOT gates, as a consequence of a useful piece of maths that comes from the theory of sets, called De Morgan's laws. In the theory of sets, if $A$ and $B$ are each sets, then $A\cap B$ is called the intersection of $A$ and $B$, and means all the elements that are in both set A and set B, and $A\cup B$ is called the union of $A$ and $B$ and means all the elements that are set A or set B. So there is a direct correspondence between the logical $\rm AND$ and the intersection, and between the logical $\rm OR$ and the union. What about $\rm NOT$? In set theory the symbol for all the elements not in set $A$ is the complement of $A$, or $\overline{A}$. There are two De Morgan's Laws, and both can be stated either in set notation or in logic notation. The logical statements are
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.45\textwidth]{figures/venn_diagram_figure.pdf}
+    \caption{\label{fig:venn_diagram_figure} Venn diagrams illustrating De Morgan's laws.}
+\end{figure}
+
+\begin{align}
+\neg(a\&b) &= \neg a | \neg b
+\label{eq:demorganone} \\
+\neg(a|b)&=\neg a \& \neg b.
+\label{eq:demorgantwo} \\
+\nonumber
+\end{align}
+In words, Equation \ref{eq:demorganone} states that not(a and b) is the same as (not a) or (not b), and Equation \ref{eq:demorgantwo} states that not(a or b) is the same thing as (not a) and (not b). The same two laws can be stated in set notation as
+\begin{align}
+    \overline{A\cap B}&=\overline{A}\cup\overline{B}
+    \label{eq:demorganoneset} \\
+    \overline{A\cup B}&=\overline{A}\cap\overline{B}.
+    \label{eq:demorgantwoset} \\ \nonumber
+\end{align}
+If you like Venn diagrams, you can prove De Morgan's Laws with them. This is done in Figure \ref{fig:venn_diagram_figure}. The rectangle represents all objects in some space, everything inside the left hand ellipse is in set A, and everything inside the right hand ellipse is in set B. The complements of $A$ and $B$ are shown in the second row. The union and intersection of $A$ and $B$ are in the third row. The fourth row shows the complements of the union and the intersection of $A$ and $B$. The union of $\overline{A}$ and $\overline{B}$ is the areas that are blue in either of the diagrams in the second row. This is everything except the thin white sliver common between both $A$ and $B$, in other words it is the complement of the intersection of $A$ and $B$. This proves De Morgan's first law, Equations \ref{eq:demorganone} and \ref{eq:demorganoneset}. The intersection of $\overline{A}$ and $\overline{B}$ is the areas that are blue in both of the diagrams in the second row. This is everything that isn't in either of the white ellipses of $A$ or $B$, in other words it is the complement of the union of $A$ and $B$. This proves De Morgan's second law, Equations \ref{eq:demorgantwo} and \ref{eq:demorgantwoset}.
+
+De Morgan's laws simplify the job of chip designers since essentially all of the logic gate elements on a chip may be fabricated out of either OR gates or AND gates, plus inverters. Figure \ref{fig:de_morgan_logic} is a third statement of De Morgan's laws in terms of the symbols for the gates themselves.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.2\textwidth]{figures/de_morgan_logic.pdf}
+    \caption{\label{fig:de_morgan_logic} De Morgan's laws in terms of the equivalence between different types of logic gate.}
+\end{figure}
+
+\section{Parallel Buses}
+\label{sec:parallel_buses}
+
+We aren't going to get very far if we only ever deal with one bit at a time. The simplest way to streamline manipulations of multiple bits is to perform the same operation on many bits in parallel. A collection of bits in parallel is called a bus, and the number of bits in the bus is called the bus width. Frequently buses consist of 8, 16 or 32 bits in parallel. There are other kinds of buses other than parallel, and we will discuss some of these presently, but for now just imagine an assembly of signals in a set of wires. Buses are ordered. In other words, the position of a particular bit of a bus is well defined. Usually we think of a bus as an ordered set of bits from left to right, with the rightmost bit called the least significant bit, or LSB, and the leftmost bit called the most significant bit, or MSB. This is in preparation for use of parallel buses to represent integers, which we will discuss in Section \ref{sec:logic_and_integers}. 
+
+The logic operations defined in Section \ref{sec:logicgates} were so far discussed as operating on a single bit, but they can also operate on buses containing many bits, so long as each input and output has the same bus width. Used in this way, the logic operations NOT ($\neg$), AND ($\&$), OR ($|$), XOR ($\oplus)$, NAND ($\neg\&$), NOR ($\neg|$) and XNOR ($\neg\oplus$) are examples of `bitwise' operations, in that they operate on each bit separately and do the same thing to all the bits. So, for example,
+\begin{align}
+    \neg\,B00010000&=B11101111
+    \label{eq:first_bus_operation}
+\end{align}
+ and
+\begin{align}
+   B10101010\,|\,B00010000\,&=\,B10111010.
+   \label{eq:second_bus_operation}
+\end{align}
+ Here I have used the notation of a leading $B$ to mean that the sequence of digits following represents a bus of bits - just a way of expressing whether the bits in a bus are high or low, $1$ or $0$, or equivalently true or false.
+ 
+ There are other binary operations that can only meaningfully act on parallel buses of bits. Bit shifting operations, in particular, involve shifting the values in all the bits in a bus to the left (in the direction of the most significant bit) or to the right (in the direction of the least significant bit). As a consequence, either the rightmost or the leftmost bit falls off the end of the bus and is lost, and a gap appears at the other end. In a logical bit-shift operation, the gap is filled with a zero. In an arithmetic bit shift, the gap is filled with a copy of the value in the bit that must moved along to create the gap. Finally, you could possibly place the value in the bit that fell off the other end of the bus in this position. All three types of bitshift operations can sometimes be needed. Where the bus is representing logical rather than arithmetical data, logical bit shifting is the most common. An exercise in Appendix \ref{sec:logic_in_vhdl} will show you how to execute logical bit shifts on buses representing logical data in the hardware description language VHDL.
+ 
+ The use of binary operations to simplify and speed up computer code is an interesting subject. There is a nice book by Warren \cite{Warren:10.5555/2462741} where you can read about logical consequences of De Morgan's laws and mathematical tricks involving bitwise logic operations combined with bit shifts, particularly in Chapters 1 and 2, which I will make available to you on Collaborate.
+
+\section{Logic and Integer Arithmetic}
+\label{sec:logic_and_integers}
+
+\subsection{Logic and the Foundations of Mathematics}
+\label{sec:logicandmathsfoundations}
+
+De Morgan's laws are an example of the connection between the theory of sets and logic. This is natural because both sets and logic are closely connected to the foundations of mathematics. The drive to build a logical foundation for mathematics was an area of intense activity at the turn of the 20th century. The famous series of books, Principia Mathematica, by Russell and Whitehead \cite{Whitehead:268025}, an attempt to build a consistent and complete logical foundation for mathematics, famously collided with the philosophy of Kurt G\"odel who proved that the task is impossible. Modern formulations of axiomatic set theory, or the logical foundations of mathematics, are based on Zermelo-Fraenkel set theory, and it is in this context that modern developments in the logical foundation of mathematics are usually discussed. The subject of the logical foundations of mathematics is fascinating. If you are interested, and there are many popular books on the subject which will stretch your mind, especially if you try and do the puzzles \cite{Hofstadter:99665,Smullyan} !
+
+Fortunately we do not need to construct a complete logical basis for mathematics, only to work out some ways of using logic gates to do simple arithmetic, which is much easier. Nonetheless, we shall quickly discover that in using logic to do mathematics you have to be careful to avoid encountering difficulties. These difficulties shall be discussed in Chapter \ref{sec:registers}.
+
+\subsection{Binary Representation of Positive Integers}
+\label{sec:postiveintegers}
+
+Let us first consider representation of integers. Bits naturally lead to the use of binary numbers to represent integers. Any sensible representation will have the integer zero represented by any number of $0$s, and the integer one represented by a single $1$. If the integers are all positive or zero, then all we need is ordinary binary numbers, so the numbers 0 to 15 can be represented by three binary digits. In ascending order, $B0000$, $B0001$, $B0010$, $B0011$ $B0100$, $B0101$, $B0110$, $B0111$, $B1000$, $B1000$, $B1001$, $B1010$, $B1011$ $B1100$, $B1101$, $B1110$, $B1111$. If we want to represent any larger number than 15, we will need more bits in our binary representation than four. The largest unsigned integer representable using an $N$ bit parallel bus is $2^N-1$.
+
+\subsection{Hexadecimal Notation}
+\label{sec:hexadecimal}
+
+I am already getting tired of writing all those zeros and ones, and in digital signal processing it is common to represent collections of binary numbers using hexadecimal, or base 16. Because people commonly have ten figures, we have developed naturallly to have symbols for each of the counting numbers between 0 and 9, and think of larger numbers as groups of 10, or groups of 100, and so on. However, suppose we had actually had 16 fingers! We would then have naturally developed separate symbols for the first 16 integers 0 to 15 that are also each representable by four binary bits. Table \ref{tab:hexadecimal} shows the first 16 numbers from the set of positive integers and zero, together with their decimal and hexadecimal representations.
+
+\begin{table}[hbt]
+    \centering
+    \begin{tabular}{|c|c|c|}
+    \hline
+         decimal & binary & hexadecimal \\
+         \hline\hline
+         0 & B0000 & 0x0 \\
+         1 & B0001 & 0x1 \\
+         2 & B0010 & 0x2 \\
+         3 & B0011 & 0x3 \\
+         4 & B0100 & 0x4 \\
+         5 & B0101 & 0x5 \\
+         6 & B0110 & 0x6 \\
+         7 & B0111 & 0x7 \\
+         8 & B1000 & 0x8 \\
+         9 & B1001 & 0x9 \\
+         10 & B1010 & 0xa \\
+         11 & B1011 & 0xb \\
+         12 & B1100 & 0xc \\
+         13 & B1101 & 0xd \\
+         14 & B1110 & 0xe \\
+         15 & B1111 & 0xf \\
+        \hline
+    \end{tabular}
+    \caption{Decimal, binary and hexadecimal representation of zero and the first fifteen positive integers.}
+    \label{tab:hexadecimal}
+\end{table}
+
+The hexadecimal notation is extensible to numbers represented by many more bits. For example, on computers integers are commonly represented as 32 bit binary numbers, so that the unsigned integer 1 would be represented as $\rm B00000000000000000000000000000001$. In hexadecimal this is $\rm 0x00000001$, which is still a lot of leading zeros, but you can see how the reduction in the number of symbols by a factor of four when using hexadecimal notation instead of binary is attractive.
+
+\subsection{Binary Counters and Oscillators}
+\label{sec:oscillators}
+
+While we are looking at this table, it makes obvious another useful feature of binary numbers, and that is the behaviour of the binary digits. Scan down the column of binary numbers and look only at the least significant bit (LSB). Notice that as the count proceeds, the least significant bit oscillates back and forth between $0$ and $1$ with a period of two counting numbers. Now look at the second-least significant bit. This bit also oscillates back and forth between zero and one, but the period of this oscillation is four counts. The third least significant bit also oscillates periodically with a period of 8 counts, and the most significant bit (MSB) has a period of the full 16 counts. This means that if we can cause a bus to count upwards from zero, each subsequent bit can serve as an oscillator with a period of twice that of the previous bit. It turns out to be very useful indeed to be able to make oscillators with different periods in digital devices, and we shall see the power of this in Chapter \ref{sec:registers}.
+
+\subsection{Overflows in Binary Arithmetic}
+\label{sec:overflows}
+
+We have already realised that we need more than four bits to represent a positive binary number greater than 15. What is the convention for dealing with overflows? What happens when you add 1 to 0xf ? We will operate with the following convention, following digital signal processing conventions: {\it overflows are disregarded}. If you require more bits than you have designed into your system to get the right answer, it's just tough - you should have used more bits. While this might sound harsh, in fact the convention that overflows are ignored is very useful indeed.
+
+The first reason for this is to do with counters. As alluded to before, if we count up in binary, each successively more significant bit behaves like an oscillator with half the period of the bit to the right. What about the most significant bit? What does it do? It starts out as 0, then half way to the maximum capacity of the bus, it switches to 1. What happens when it reaches full capacity? This is when all the bits are $1$. The next number in the sequence, {\it ignoring the overflow} is all zeros. In other words, the counter just resets to zero, and then keeps counting. A counter that starts at zero, then gets to the maximum number that can be represented with the number of bits, then resets to zero automatically and starts again, is very useful indeed!
+
+There's another very useful application of ignoring overflows. It means that a binary number of N bits containing all 1s is adjacent in the sequence of binary numbers to a binary number containing all 0s. This comes in very handy when representing negative integers with a system called {\it twos complement} which we will discuss in the next section.
+
+To summarise this section, in a binary representation of numbers, overflows are ignored. If you have 4 bits, then all numbers are represented using 4 bits, and if you end up running off the end, you neglect any overflows and instead your sequence wraps around back to the other end.
+
 \end{document}
